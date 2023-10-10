@@ -10,7 +10,7 @@ class genome{
 public:
     fixedpt* chromosomes; // using raw pointer as it allows for some alignment, and the size is managed by the engine
     explicit genome(int size){
-        chromosomes = new fixedpt[size];
+        chromosomes = new (std::align_val_t(64)) fixedpt[size];
     }
 };
 

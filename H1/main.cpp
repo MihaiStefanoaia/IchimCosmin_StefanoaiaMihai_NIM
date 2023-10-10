@@ -6,7 +6,8 @@
 int main() {
     std::cout << sizeof(fixedpt) << '\n';
     for(float f = -1; f < 1; f += 0.0625){
-        std::cout << f << " : " << rastrigin({fixedpt(f)}) << '\n';
+        auto nr = fixedpt(f);
+        std::cout << f << " : " << rastrigin(&nr,1) << '\n';
     }
     return 0;
 }
