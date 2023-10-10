@@ -201,7 +201,7 @@ public:
 private:
     BaseType m_value;
 public:
-    BaseType& get_m_value_ref() const{
+    BaseType& get_m_value_ref(){
         return m_value;
     }
 };
