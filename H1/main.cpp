@@ -14,17 +14,18 @@ int main() {
 //    }
     std::srand(time(nullptr));
     auto eng = engine();
-    eng.dimensions = 3;
+    eng.dimensions = 30;
     eng.populationSize = 1000;
-    eng.generations = 100000;
+    eng.generations = 1000000;
     eng.lowerBound = -5.12;
     eng.upperBound =  5.12;
     eng.optimize = rastrigin;
     eng.fitness  = rastrigin_fitness;
-    eng.selectionPressure = 0;
     eng.mutationRate = 0.00625;
     eng.threshold = INFINITY;
-    eng.printFrequency = 512;
+    eng.printFrequency = 16;
+    eng.crossoverCuts = 1;
+    eng.strategy = HillclimbStrategies::BEST_IMPROVEMENT;
 
     eng.run();
     return 0;
