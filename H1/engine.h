@@ -3,6 +3,7 @@
 #include "funclib.h"
 #include <random>
 #include <iostream>
+#include <tuple>
 
 enum HillclimbStrategies {
     NONE,
@@ -112,7 +113,7 @@ public:
     genome* currentGeneration{};              // the main population on which the work is being done
     genome* nextGeneration{};                 // buffer for the new generations
     double_t* fitnessScores{};                // list of the fitness scores
-    double_t* fitnessScoresCumSum{};          // list of the cumulative sum of the fitness scores
+    std::tuple<double_t, int>* fitnessScoresCumSum{};   // list of the cumulative sum of the fitness scores
     int32_t* fitnessRanking{};                // buffer for the fitness rankings
     uint32_t populationSize{};                // amount of entities
     uint32_t dimensions{};                    // dimensions to optimize - also number of chromosomes
@@ -129,6 +130,7 @@ public:
     uint32_t printFrequency = 256;
     HillclimbStrategies strategy = NONE;
     uint32_t crossoverCuts = 1;
+    double_t elitistPercentageInFollowingGeneration = 10;
 
     void run();
 
@@ -141,7 +143,7 @@ public:
 void engine::run_generation() {
     // generate fitness scores for each member of the generation
     fitnessScores[0] = fitness(optimize(currentGeneration[0].chromosomes,dimensions),dimensions);
-    fitnessScoresCumSum[0] = fitnessScores[0];
+    fitnessScoresCumSum[0] = std::tuple<double_t, int>(fitnessScores[0], 0);
     for (auto i = 1; i < populationSize; i++){
         auto fitnessScore = fitness(optimize(currentGeneration[i].chromosomes,dimensions),dimensions);
         fitnessScores[i] = fitnessScore;
@@ -149,18 +151,27 @@ void engine::run_generation() {
             winner = &currentGeneration[i];
             return;
         }
-        fitnessScoresCumSum[i] = fitnessScoresCumSum[i-1] + fitnessScore;
+        fitnessScoresCumSum[i] = std::tuple<double_t, int>(get<0>(fitnessScoresCumSum[i-1]) + fitnessScore, i);
         if (fitnessScore > currentMaximumFitness){
             currentMaximumFitness = fitnessScore;
             tempWinner->get_genes(currentGeneration[i],dimensions);
         }
     }
+    // do the elitist selection
+    // sorting of fitnessScores
+    quickSort(fitnessScores, currentGeneration->chromosomes, 1, populationSize - 1);
+    int elitistCount = (elitistPercentageInFollowingGeneration * populationSize) / 100;
+    for (auto i = 0; i < elitistCount; i++){
+        nextGeneration[i].get_genes(currentGeneration[populationSize - 1 - i], dimensions);
+    }
+    // after the elitist selection the crossover process should be done (the candidates are to be selected using the roulette strategy)
+    // the crossover should be followed by the mutation process
     // run the selection
-    double_t randomSelector = (double)std::rand()/(double)RAND_MAX * fitnessScoresCumSum[populationSize-1];
-    for(auto newMember = 0; newMember < populationSize; newMember++){
+    double_t randomSelector = (double)std::rand()/(double)RAND_MAX * get<0>(fitnessScoresCumSum[populationSize-1]);
+    for(auto newMember = elitistCount; newMember < populationSize; newMember++){
         for(auto i = 0; i < populationSize; i++){
-            if (fitnessScoresCumSum[i] >= randomSelector){
-                nextGeneration[newMember].get_genes(currentGeneration[i],dimensions);
+            if (get<0>(fitnessScoresCumSum[i]) >= randomSelector){
+                nextGeneration[newMember].get_genes(currentGeneration[get<1>(fitnessScoresCumSum[i])],dimensions);
                 if (newMember < populationSize - 1) {
                     nextGeneration[newMember + 1].get_genes(nextGeneration[newMember], dimensions);
                     nextGeneration[newMember + 1].mutate(dimensions, mutationRate, lowerBound, upperBound);
@@ -187,7 +198,7 @@ void engine::setup() {
     currentGeneration = new genome[populationSize];
     nextGeneration = new genome[populationSize];
     fitnessScores = new double_t[populationSize];
-    fitnessScoresCumSum = new double_t[populationSize];
+    fitnessScoresCumSum = new std::tuple<double_t, int>[populationSize];
 
     for(auto i = 0; i < populationSize; i++){
         currentGeneration[i] = genome(dimensions,lowerBound,upperBound);

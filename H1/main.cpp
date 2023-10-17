@@ -26,6 +26,7 @@ int main() {
     eng.printFrequency = 16;
     eng.crossoverCuts = 1;
     eng.strategy = HillclimbStrategies::BEST_IMPROVEMENT;
+    eng.elitistPercentageInFollowingGeneration = 10;
 
     eng.run();
     return 0;
