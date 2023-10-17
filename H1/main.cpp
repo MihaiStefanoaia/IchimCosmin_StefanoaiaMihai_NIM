@@ -14,7 +14,7 @@ int main() {
 //    }
     std::srand(time(nullptr));
     auto eng = engine();
-    eng.dimensions = 30;
+    eng.dimensions = 10;
     eng.populationSize = 1000;
     eng.generations = 1000000;
     eng.lowerBound = -5.12;
