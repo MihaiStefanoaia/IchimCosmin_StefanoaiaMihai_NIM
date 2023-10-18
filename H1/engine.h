@@ -159,7 +159,7 @@ void engine::run_generation() {
     }
     // do the elitist selection
     // sorting of fitnessScores
-    quickSort(fitnessScores, currentGeneration->chromosomes, 1, populationSize - 1);
+    quickSort(fitnessScores, currentGeneration, 1, populationSize - 1);
     int elitistCount = (elitistPercentageInFollowingGeneration * populationSize) / 100;
     for (auto i = 0; i < elitistCount; i++){
         nextGeneration[i].get_genes(currentGeneration[populationSize - 1 - i], dimensions);
