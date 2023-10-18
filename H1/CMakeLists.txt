@@ -7,5 +7,6 @@ add_executable(H1 main.cpp
         funclib.h
         fpm/fixed.hpp
         fpm/math.hpp
-        engine.h)
+        engine.h
+        genome.h)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
