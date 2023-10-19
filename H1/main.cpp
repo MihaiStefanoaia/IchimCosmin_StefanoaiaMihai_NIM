@@ -14,7 +14,7 @@ int main() {
 //    }
     std::srand(time(nullptr));
     auto eng = engine();
-    eng.dimensions = 10;
+    eng.dimensions = 30;
     eng.populationSize = 1000;
     eng.generations = 1000000;
     eng.lowerBound = -5.12;
@@ -26,7 +26,7 @@ int main() {
     eng.printFrequency = 16;
     eng.crossoverCuts = 1;
     eng.strategy = HillclimbStrategies::BEST_IMPROVEMENT;
-    eng.elitistPercentageInFollowingGeneration = 15;
+    eng.elitistPercentageInFollowingGeneration = 10;
 
     eng.run();
     return 0;

@@ -87,11 +87,11 @@ uint32_t  partition(double_t * arr, genome * additionalArray, uint32_t  low, uin
 }
 
 void quickSort(double_t * arr, genome * additionalArray, uint32_t  low, uint32_t high){
-    if(low < high){
-        uint32_t  pi = partition(arr, additionalArray, low, high);
-        quickSort(arr, additionalArray, low, pi-1);
-        quickSort(arr, additionalArray, pi+1, high);
-    }
+    if(low >= high)
+        return;
+    uint32_t  pi = partition(arr, additionalArray, low, high);
+    quickSort(arr, additionalArray, low, pi-1);
+    quickSort(arr, additionalArray, pi+1, high);
 }
 
 #endif //H1_FUNCLIB_H
