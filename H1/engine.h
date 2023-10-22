@@ -26,7 +26,7 @@ public:
     ~genome(){
         if(chromosomes != nullptr)
             return;
-        delete[] chromosomes;
+        delete chromosomes;
     }
     void mutate(uint32_t dimensions, double_t chance, double_t lowerBound = 0, double_t upperBound = 0){
         if (chromosomes == nullptr)
@@ -134,7 +134,6 @@ public:
 
     void setup();
     void run_generation();
-    void cleanup() const;
     engine()= default;
 };
 
@@ -247,16 +246,6 @@ void engine::run() {
         std::cout << tempWinner->chromosomes[dimensions-1] <<"]\n";
         std::cout << "function(x) = " << optimize(tempWinner->chromosomes,dimensions) << "\n";
     }
-
-    cleanup();
-}
-
-void engine::cleanup() const {
-    delete tempWinner;
-    delete[] currentGeneration;
-    delete[] nextGeneration;
-    delete[] fitnessScores;
-    delete[] fitnessScoresCumSum;
 }
 
 
