@@ -8,8 +8,6 @@
 #include <sys/types.h>
 #include "genome.h"
 
-using fixedpt = fpm::fixed<int64_t ,__int128_t ,24>;
-
 fixedpt rastrigin(fixedpt* args, uint32_t n){
     auto ret = fixedpt (10l * n);
     for(int i = 0; i < n; i++){

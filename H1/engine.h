@@ -3,30 +3,37 @@
 #include "funclib.h"
 #include <random>
 #include <iostream>
+#include "json.hpp"
 
 
 class engine {
 public:
+//    buffers
     genome* currentGeneration{};              // the main population on which the work is being done
     genome* nextGeneration{};                 // buffer for the new generations
     double_t* fitnessScores{};                // list of the fitness scores
     double_t* fitnessScoresCumSum{};          // list of the cumulative sum of the fitness scores
     int32_t* fitnessRanking{};                // buffer for the fitness rankings
-    uint32_t populationSize{};                // amount of entities
-    uint32_t dimensions{};                    // dimensions to optimize - also number of chromosomes
-    uint32_t generations{};                   // max amount of times to run the algorithm
-    double_t lowerBound{};                    // lower bound of the function domain
-    double_t upperBound{};                    // upper bound of the function domain
-    double_t threshold{};                     // the stopping point
-    double_t currentMaximumFitness = -1;      // used for printing
-    double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
-    std::function<fixedpt(fixedpt*, uint32_t)> optimize; // function to optimize for
-    std::function<double_t (fixedpt,uint32_t)> fitness;           // fitness function
     genome* winner{};
     genome* tempWinner{};
-    uint32_t printFrequency = 256;
-    HillclimbStrategies strategy = NONE;
+// parameters
+    double_t lowerBound{};                    // lower bound of the function domain
+    double_t upperBound{};                    // upper bound of the function domain
+    std::function<fixedpt(fixedpt*, uint32_t)> optimize; // function to optimize for
+    std::function<double_t (fixedpt,uint32_t)> fitness;           // fitness function
+    uint32_t dimensions{};                    // dimensions to optimize - also number of chromosomes
+    uint32_t populationSize{};                // amount of entities
+    uint32_t generations{};                   // max amount of times to run the algorithm
+    double_t threshold{};                     // the stopping point
+    double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
     uint32_t crossoverCuts = 1;
+    HillclimbStrategies strategy = NONE;
+    uint32_t loggingFrequency = 256;
+    std::string logFile = "out.log";
+    bool disableLogging = true;
+//    various helper variables
+    double_t currentMaximumFitness = -1;      // used for printing
+    nlohmann::json log;
 
     void run();
 
@@ -96,7 +103,7 @@ void engine::run() {
     setup();
     for(auto generation = 0; generation < generations || generations == -1; generation++){
         run_generation();
-        if(generation % printFrequency == 0){
+        if(generation % loggingFrequency == 0){
             std::cout << "At generation " << generation << "...\n";
 //            std::cout << "Best version:\n";
 //            std::cout << "x = [";

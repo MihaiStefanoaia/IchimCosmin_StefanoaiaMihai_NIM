@@ -4,7 +4,7 @@
 #include "fpm/fixed.hpp"
 #include "fpm/math.hpp"
 
-using fixedpt = fpm::fixed<int64_t ,__int128_t ,24>;
+using fixedpt = fpm::fixed<int64_t ,__int128_t ,48>;
 
 enum HillclimbStrategies {
     NONE,
