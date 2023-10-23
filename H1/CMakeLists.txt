@@ -8,5 +8,7 @@ add_executable(H1 main.cpp
         fpm/fixed.hpp
         fpm/math.hpp
         engine.h
-        genome.h)
+        genome.h
+        lut.h
+)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Wpedantic")

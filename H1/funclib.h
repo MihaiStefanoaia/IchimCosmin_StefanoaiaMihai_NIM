@@ -7,12 +7,13 @@
 #include "fpm/math.hpp"
 #include <sys/types.h>
 #include "genome.h"
+#include "lut.h"
 
 fixedpt rastrigin(fixedpt* args, uint32_t n){
     auto ret = fixedpt (10l * n);
     for(int i = 0; i < n; i++){
         const auto& x = args[i];
-        ret += x * x - 10l * fpm::cos(x * fixedpt::two_pi());
+        ret += x * x - 10l * cos_lut(x * fixedpt::two_pi());
     }
     return ret;
 }
@@ -30,7 +31,7 @@ fixedpt griewangk(fixedpt* args, uint32_t n){
         ret  += (x / fixedpt(200)) * (x / fixedpt(20));
     }
     for(int i = 0; i < n; i++){
-        prod *= fpm::cos(args[i] / fpm::sqrt(fixedpt(i+1)));
+        prod *= cos_lut(args[i] / fpm::sqrt(fixedpt(i+1)));
     }
     return ret - prod;
 }
@@ -60,7 +61,7 @@ fixedpt michalewicz(fixedpt* args, uint32_t n){
     auto ret = fixedpt(0);
     for(auto i = 0; i < n; i++) {
         auto const& x = args[i];
-        ret += fpm::sin(x) * fpm::pow(fpm::sin(fixedpt(i+1) * x * x / fixedpt::pi()),fixedpt (2 * m));
+        ret += sin_lut(x) * fpm::pow(sin_lut(fixedpt(i+1) * x * x / fixedpt::pi()),fixedpt (2 * m));
     }
     return fixedpt(-1) * ret;
 }

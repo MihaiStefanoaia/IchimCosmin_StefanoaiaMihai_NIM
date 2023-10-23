@@ -6,6 +6,11 @@
 #include <set>
 #include "argparse.hpp"
 
+#include "fpm/fixed.hpp"
+#include "fpm/math.hpp"
+#include <fstream>
+#include "lut.h"
+
 // map: function_name -> (domain_min, domain_max, function, fitness_function)
 std::map<std::string, std::tuple<float,float,std::function<fixedpt(fixedpt*, uint32_t)>,std::function<double_t (fixedpt,uint32_t)>>> functions = {
         {"rastrigin",{-5.12, 5.12, rastrigin, rastrigin_fitness}},
@@ -16,6 +21,38 @@ std::map<std::string, HillclimbStrategies> hc_strats = {
         {"first", HillclimbStrategies::FIRST_IMPROVEMENT},
         {"best",  HillclimbStrategies::BEST_IMPROVEMENT},
 };
+
+void createLUT() {
+    auto start  = fixedpt (0l);
+    auto end = fixedpt (8l);
+    auto step = fixedpt (8l);
+    step /= fixedpt(16384l);
+    auto cos_values = new fixedpt[16384];
+    for (int i = 0; i < 16384; i += 1) {
+        cos_values[i] = fpm::cos((start + (fixedpt(i) * step)));
+    }
+    std::ofstream header_file("lut.h");
+    header_file << "#ifndef LUT_H\n";
+    header_file << "#define LUT_H\n\n";
+    header_file << "#include \"fpm/fixed.hpp\"\n";
+    header_file << "#include \"fpm/math.hpp\"\n";
+    header_file << "#include <sys/types.h>\n";
+    header_file << "using fixedpt = fpm::fixed<int64_t ,__int128_t ,48>;\n";
+    header_file << "uint64_t * cos_values = new uint64_t []{\n";
+    for (int i = 0; i < 16384; i += 1) {
+        header_file << "    " << *(uint64_t*)(&cos_values[i]) << ",\n";
+    }
+    header_file << "};\n\n";
+    header_file << "#endif // LUT_H\n";
+    header_file.close();
+    std::cout << "lut.h generated successfully." << std::endl;
+    return;
+}
+
+//int main(int argc, char** argv) {
+// //    createLUT();
+//    std::cout<< sin_lut(fixedpt::pi()/fixedpt(4) - fixedpt::two_pi());
+//}
 
 int main(int argc, char** argv) {
     std::srand(time(nullptr));
