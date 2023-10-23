@@ -28,6 +28,8 @@ public:
     double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
     uint32_t crossoverCuts = 1;
     HillclimbStrategies strategy = NONE;
+    uint32_t generationsBetweenHillclimbings = 25;
+    uint32_t currentGenerationsBetweenHillclimbings = 25;
     uint32_t loggingFrequency = 256;
     std::string logFile = "out.log";
     bool disableLogging = true;
@@ -60,27 +62,33 @@ void engine::run_generation() {
         }
     }
     // run the selection
-    double_t randomSelector = (double)std::rand()/(double)RAND_MAX * fitnessScoresCumSum[populationSize-1];
     for(auto newMember = 0; newMember < populationSize; newMember++){
+        double_t randomSelector = (double)std::rand()/(double)RAND_MAX * fitnessScoresCumSum[populationSize-1];
         for(auto i = 0; i < populationSize; i++){
             if (fitnessScoresCumSum[i] >= randomSelector){
                 nextGeneration[newMember].get_genes(currentGeneration[i],dimensions);
-                if (newMember < populationSize - 1) {
-                    nextGeneration[newMember + 1].get_genes(nextGeneration[newMember], dimensions);
-                    nextGeneration[newMember + 1].mutate(dimensions, mutationRate, lowerBound, upperBound);
-                    newMember++;
-                }
+//                if (newMember < populationSize - 1) {
+//                    nextGeneration[newMember + 1].get_genes(nextGeneration[newMember], dimensions);
+//                    nextGeneration[newMember + 1].mutate(dimensions, mutationRate, lowerBound, upperBound);
+//                    newMember++;
+//                }
                 break;
             }
         }
     }
-    // crossover
+    // crossover (aici trebuie selectia aia pentru crossover)
     for(auto i = 0; i < populationSize - populationSize % 2; i+=2){
         nextGeneration[i].crossover(nextGeneration[i+1],dimensions,crossoverCuts, lowerBound, upperBound);
     }
     // hill climb
-    for(auto i = 0; i < populationSize; i++){
-        nextGeneration[i].hillclimb(dimensions, optimize, fitness, strategy,lowerBound, upperBound);
+    if (currentGenerationsBetweenHillclimbings == 0) {
+        for (auto i = 0; i < populationSize; i++) {
+            nextGeneration[i].hillclimb(dimensions, optimize, fitness, strategy, lowerBound, upperBound);
+        }
+        currentGenerationsBetweenHillclimbings = generationsBetweenHillclimbings;
+    }
+    else{
+        currentGenerationsBetweenHillclimbings -= 1;
     }
 }
 
