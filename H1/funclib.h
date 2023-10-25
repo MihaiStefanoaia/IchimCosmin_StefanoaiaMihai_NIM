@@ -70,4 +70,29 @@ double_t michalewicz_fitness(fixedpt f_x, uint32_t dimensions){
     return std::abs((double_t)f_x);
 }
 
+uint32_t  partition(double_t * arr, genome * additionalArray, uint32_t  low, uint32_t  high){
+    double_t pivot = arr[high];
+    uint32_t  i = (low - 1);
+    for(uint32_t  j = low;j <= high; j++){
+        if(arr[j] < pivot){
+            i++;
+            std::swap(arr[i],arr[j]);
+            additionalArray[i].swap(additionalArray[j]);
+            additionalArray[i].swap(additionalArray[j]);
+        }
+    }
+    std::swap(arr[i+1],arr[high]);
+    additionalArray[i+1].swap(additionalArray[high]);
+    additionalArray[i+1].swap(additionalArray[high]);
+    return (i + 1);
+}
+
+void quickSort(double_t * arr, genome * additionalArray, uint32_t  low, uint32_t high){
+    if(low < high){
+        uint32_t  pi = partition(arr, additionalArray, low, high);
+        quickSort(arr, additionalArray, low, pi-1);
+        quickSort(arr, additionalArray, pi+1, high);
+    }
+}
+
 #endif //H1_FUNCLIB_H

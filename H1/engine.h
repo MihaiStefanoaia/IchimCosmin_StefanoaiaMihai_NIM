@@ -30,6 +30,8 @@ public:
     HillclimbStrategies strategy = NONE;
     uint32_t generationsBetweenHillclimbings = 25;
     uint32_t currentGenerationsBetweenHillclimbings = 25;
+    double_t crossoverPercentage = 0.2;
+    uint32_t crossoverWindow = 10;
     uint32_t loggingFrequency = 256;
     std::string logFile = "out.log";
     bool disableLogging = true;
@@ -61,12 +63,14 @@ void engine::run_generation() {
             tempWinner->get_genes(currentGeneration[i],dimensions);
         }
     }
+    auto * newGenerationFitnessScores = new double_t[populationSize];
     // run the selection
     for(auto newMember = 0; newMember < populationSize; newMember++){
         double_t randomSelector = (double)std::rand()/(double)RAND_MAX * fitnessScoresCumSum[populationSize-1];
         for(auto i = 0; i < populationSize; i++){
             if (fitnessScoresCumSum[i] >= randomSelector){
-                nextGeneration[newMember].get_genes(currentGeneration[i],dimensions);
+                nextGeneration[newMember].get_genes(currentGeneration[i], dimensions);
+                newGenerationFitnessScores[newMember] = fitnessScores[i];
 //                if (newMember < populationSize - 1) {
 //                    nextGeneration[newMember + 1].get_genes(nextGeneration[newMember], dimensions);
 //                    nextGeneration[newMember + 1].mutate(dimensions, mutationRate, lowerBound, upperBound);
@@ -77,8 +81,14 @@ void engine::run_generation() {
         }
     }
     // crossover (aici trebuie selectia aia pentru crossover)
-    for(auto i = 0; i < populationSize - populationSize % 2; i+=2){
-        nextGeneration[i].crossover(nextGeneration[i+1],dimensions,crossoverCuts, lowerBound, upperBound);
+    quickSort(newGenerationFitnessScores, nextGeneration,  1, populationSize);
+    for(auto i = 0; i < populationSize * crossoverPercentage; i+=1){
+        auto initialPosition = static_cast<int>((double)std::rand()/(double)RAND_MAX * (populationSize - populationSize * (1-crossoverPercentage)) + populationSize * (1-crossoverPercentage));
+        auto crossoverPartnerPosition = static_cast<int>((double)std::rand()/(double)RAND_MAX * (2 * crossoverWindow) + ((-1) * crossoverWindow));
+        while (crossoverPartnerPosition == 0){
+            crossoverPartnerPosition = static_cast<int>((double)std::rand()/(double)RAND_MAX * (2 * crossoverWindow) + ((-1) * crossoverWindow));
+        }
+        nextGeneration[initialPosition].crossover(nextGeneration[crossoverPartnerPosition],dimensions,crossoverCuts, lowerBound, upperBound);
     }
     // hill climb
     if (currentGenerationsBetweenHillclimbings == 0) {
