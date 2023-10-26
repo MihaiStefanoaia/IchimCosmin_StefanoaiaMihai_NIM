@@ -13,7 +13,7 @@ fixedpt rastrigin(fixedpt* args, uint32_t n){
     auto ret = fixedpt (10l * n);
     for(int i = 0; i < n; i++){
         const auto& x = args[i];
-        ret += x * x - 10l * cos_lut(x * fixedpt::two_pi());
+        ret += x * x - 10l * fpm::cos(x * fixedpt::two_pi());
     }
     return ret;
 }

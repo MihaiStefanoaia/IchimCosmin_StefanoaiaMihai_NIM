@@ -31,19 +31,21 @@ void createLUT() {
     for (int i = 0; i < 16384; i += 1) {
         cos_values[i] = fpm::cos((start + (fixedpt(i) * step)));
     }
-    std::ofstream header_file("lut.h");
-    header_file << "#ifndef LUT_H\n";
-    header_file << "#define LUT_H\n\n";
+    std::ofstream header_file("lut_arr.h");
+    header_file << "#ifndef LUT_ARR_H\n";
+    header_file << "#define LUT_ARR_H\n\n";
     header_file << "#include \"fpm/fixed.hpp\"\n";
     header_file << "#include \"fpm/math.hpp\"\n";
     header_file << "#include <sys/types.h>\n";
-    header_file << "using fixedpt = fpm::fixed<int64_t ,__int128_t ,48>;\n";
-    header_file << "uint64_t * cos_values = new uint64_t []{\n";
+    header_file << "using fixedpt = fpm::fixed<int64_t ,__int128_t ,40>;\n";
+    header_file << "uint64_t cos_values[] = {\n";
     for (int i = 0; i < 16384; i += 1) {
-        header_file << "    " << *(uint64_t*)(&cos_values[i]) << ",\n";
+        char s[64];
+        snprintf(s,63,"%016lx",*(uint64_t*)(&cos_values[i]));
+        header_file << "    " << "0x" << std::hex << s << ",\n";
     }
     header_file << "};\n\n";
-    header_file << "#endif // LUT_H\n";
+    header_file << "#endif // LUT_ARR_H\n";
     header_file.close();
     std::cout << "lut.h generated successfully." << std::endl;
     return;
@@ -55,6 +57,11 @@ void createLUT() {
 //}
 
 int main(int argc, char** argv) {
+//    for(auto x = fixedpt(0); x < fixedpt(8); x += (fixedpt(8) / fixedpt(16384))){
+//        std::cout << fpm::cos(x) - cos_lut(x) << '\n';
+//    }
+//
+//    exit(0);
     std::srand(time(nullptr));
 
     auto parser = argparse::ArgumentParser("H1");
