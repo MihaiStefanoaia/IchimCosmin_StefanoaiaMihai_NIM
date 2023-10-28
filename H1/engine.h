@@ -28,10 +28,10 @@ public:
     double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
     uint32_t crossoverCuts = 1;
     HillclimbStrategies strategy = NONE;
-    uint32_t generationsBetweenHillclimbings = 25;
-    uint32_t currentGenerationsBetweenHillclimbings = 25;
-    double_t crossoverPercentage = 0.2;
-    uint32_t crossoverWindow = 10;
+    uint32_t generationsBetweenHillclimbings = 3;
+    uint32_t currentGenerationsBetweenHillclimbings = 0;
+    double_t crossoverPercentage = 0.1;
+    double_t crossoverRate = 0.95;
     uint32_t loggingFrequency = 256;
     std::string logFile = "out.log";
     bool disableLogging = true;
@@ -71,24 +71,25 @@ void engine::run_generation() {
             if (fitnessScoresCumSum[i] >= randomSelector){
                 nextGeneration[newMember].get_genes(currentGeneration[i], dimensions);
                 newGenerationFitnessScores[newMember] = fitnessScores[i];
-//                if (newMember < populationSize - 1) {
-//                    nextGeneration[newMember + 1].get_genes(nextGeneration[newMember], dimensions);
-//                    nextGeneration[newMember + 1].mutate(dimensions, mutationRate, lowerBound, upperBound);
-//                    newMember++;
-//                }
                 break;
             }
         }
     }
-    // crossover (aici trebuie selectia aia pentru crossover)
-    quickSort(newGenerationFitnessScores, nextGeneration,  1, populationSize);
-    for(auto i = 0; i < populationSize * crossoverPercentage; i+=1){
-        auto initialPosition = static_cast<int>((double)std::rand()/(double)RAND_MAX * (populationSize - populationSize * (1-crossoverPercentage)) + populationSize * (1-crossoverPercentage));
-        auto crossoverPartnerPosition = static_cast<int>((double)std::rand()/(double)RAND_MAX * (2 * crossoverWindow) + ((-1) * crossoverWindow));
-        while (crossoverPartnerPosition == 0){
-            crossoverPartnerPosition = static_cast<int>((double)std::rand()/(double)RAND_MAX * (2 * crossoverWindow) + ((-1) * crossoverWindow));
-        }
-        nextGeneration[initialPosition].crossover(nextGeneration[crossoverPartnerPosition],dimensions,crossoverCuts, lowerBound, upperBound);
+    // crossover
+    quickSort(newGenerationFitnessScores, nextGeneration,  1, populationSize - 1);
+    auto shouldBeCrossedOver = static_cast<uint64_t> (populationSize * crossoverPercentage);
+    if (shouldBeCrossedOver % 2 == 1 && (double)std::rand()/(double)RAND_MAX > 0.5){
+        shouldBeCrossedOver += 1;
+    }
+    else if (shouldBeCrossedOver % 2 == 1){
+        shouldBeCrossedOver -= 1;
+    }
+    for(auto i = populationSize - 1; i > 1; i -= 2){
+        nextGeneration[i].crossover(nextGeneration[i-1], dimensions, crossoverCuts, lowerBound, upperBound, crossoverRate);
+    }
+    // mutation
+    for(auto i = 0; i < populationSize; i++){
+        nextGeneration[i].mutate(dimensions, mutationRate, lowerBound, upperBound);
     }
     // hill climb
     if (currentGenerationsBetweenHillclimbings == 0) {

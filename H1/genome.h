@@ -82,8 +82,8 @@ public:
         }
     }
 
-    void crossover(genome& other, uint32_t dimensions, uint32_t cuts = 1, double_t lowerBound = 0, double_t upperBound = 0){
-        if(cuts == 0)
+    void crossover(genome& other, uint32_t dimensions, uint32_t cuts = 1, double_t lowerBound = 0, double_t upperBound = 0, double_t crossoverRate = 1){
+        if(cuts == 0 && (double)std::rand()/(double)RAND_MAX > crossoverRate)
             return;
         for(int i = 0; i < dimensions; i++){
             uint64_t mask = 0;
@@ -99,10 +99,8 @@ public:
             uint64_t buf = modify;
             modify   = (modify &  mask) | (modify_o & ~mask);
             modify_o = (buf    & ~mask) | (modify_o &  mask);
-
             chromosomes[i] = chromosomes[i] > fixedpt(lowerBound) ? chromosomes[i] : fixedpt(lowerBound);
             chromosomes[i] = chromosomes[i] < fixedpt(upperBound) ? chromosomes[i] : fixedpt(upperBound);
-
             other.chromosomes[i] = other.chromosomes[i] > fixedpt(lowerBound) ? other.chromosomes[i] : fixedpt(lowerBound);
             other.chromosomes[i] = other.chromosomes[i] < fixedpt(upperBound) ? other.chromosomes[i] : fixedpt(upperBound);
         }
