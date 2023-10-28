@@ -1,5 +1,5 @@
 import subprocess
-import os
+import time
 
 if __name__ == '__main__':
     tolerances = {
@@ -24,16 +24,16 @@ if __name__ == '__main__':
             30: -29
         }
     }
-    for d in [2, 10, 30]:
-        for p in [100, 500, 1000]:
-            for hcs in ['none', 'first', 'best']:
-                for f in ['rastrigin', 'griewangk', 'rosenbrock', 'michalewicz']:
+    for f in ['rosenbrock', 'michalewicz']:
+        for d in [2, 10, 30]:
+            for p in [100, 500, 1000]:
+                for hcs in ['none', 'first', 'best']:
                     for hcf in [0, 1, 5]:
                         subprocesses = {}
-                        for cp in [45, 55, 65]:
-                            for sp in [40, 50, 60]:
-                                for i in range(5):
-                                    filename = f'results/f_{f}_d_{d}_p_{p}_cp_{cp}_sp_{sp}_hcf_{hcf}_hcs_{hcs}_{i}'
+                        for i in range(5):
+                            for cp in [45, 55, 65]:
+                                for sp in [40, 50, 60]:
+                                    filename = f'results/f_{f}_d_{d}_p_{p}_hcs_{hcs}_hcf_{hcf}_cp_{cp}_sp_{sp}_{i}'
                                     outfile = open(filename + '.txt', 'w')
 
                                     subprocesses[filename] = subprocess.Popen(
@@ -42,6 +42,8 @@ if __name__ == '__main__':
                                          (filename + '.json')],
                                         stdout=outfile)
                                     print(filename)
+                            time.sleep(2.0)
+                                                        
                         for fn, pr in subprocesses.items():
                             pr.wait()
                             print(f'{fn} done')
