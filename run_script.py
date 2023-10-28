@@ -1,5 +1,6 @@
 import subprocess
 import time
+import os
 
 if __name__ == '__main__':
     tolerances = {
@@ -31,9 +32,12 @@ if __name__ == '__main__':
                     for hcf in [0, 1, 5]:
                         subprocesses = {}
                         for i in range(5):
+                            ran_any = False
                             for cp in [45, 55, 65]:
                                 for sp in [40, 50, 60]:
                                     filename = f'results/f_{f}_d_{d}_p_{p}_hcs_{hcs}_hcf_{hcf}_cp_{cp}_sp_{sp}_{i}'
+                                    if os.path.isfile(filename + '.json'):
+                                        continue
                                     outfile = open(filename + '.txt', 'w')
 
                                     subprocesses[filename] = subprocess.Popen(
@@ -42,8 +46,10 @@ if __name__ == '__main__':
                                          (filename + '.json')],
                                         stdout=outfile)
                                     print(filename)
-                            time.sleep(2.0)
-                                                        
+                                    ran_any = True
+                            if ran_any:
+                                time.sleep(2.0)
+
                         for fn, pr in subprocesses.items():
                             pr.wait()
                             print(f'{fn} done')
