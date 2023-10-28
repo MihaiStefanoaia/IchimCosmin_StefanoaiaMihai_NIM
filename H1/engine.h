@@ -3,6 +3,7 @@
 #include "funclib.h"
 #include <random>
 #include <iostream>
+#include <fstream>
 #include "json.hpp"
 
 
@@ -13,6 +14,7 @@ public:
     genome* nextGeneration{};                 // buffer for the new generations
     double_t* fitnessScores{};                // list of the fitness scores
     double_t* fitnessScoresCumSum{};          // list of the cumulative sum of the fitness scores
+    double_t* newGenerationFitnessScores;     // AAAAAAAAAaa
     int32_t* fitnessRanking{};                // buffer for the fitness rankings
     genome* winner{};
     genome* tempWinner{};
@@ -28,16 +30,19 @@ public:
     double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
     uint32_t crossoverCuts = 1;
     HillclimbStrategies strategy = NONE;
-    uint32_t generationsBetweenHillclimbings = 3;
-    uint32_t currentGenerationsBetweenHillclimbings = 0;
-    double_t crossoverPercentage = 0.1;
-    double_t crossoverRate = 0.95;
+    uint32_t generationsBetweenHillclimbings = 1;
+    double_t crossoverPercentage = 0.65;
     uint32_t loggingFrequency = 256;
+    double_t selectionPercentage = 0.5;
     std::string logFile = "out.log";
     bool disableLogging = true;
 //    various helper variables
+    uint32_t currentGenerationsBetweenHillclimbings = 0;
     double_t currentMaximumFitness = -1;      // used for printing
     nlohmann::json log;
+    std::string functionName = "";
+    time_t startTime;
+    time_t finishTime;
 
     void run();
 
@@ -63,40 +68,41 @@ void engine::run_generation() {
             tempWinner->get_genes(currentGeneration[i],dimensions);
         }
     }
-    auto * newGenerationFitnessScores = new double_t[populationSize];
     // run the selection
     for(auto newMember = 0; newMember < populationSize; newMember++){
         double_t randomSelector = (double)std::rand()/(double)RAND_MAX * fitnessScoresCumSum[populationSize-1];
-        for(auto i = 0; i < populationSize; i++){
+        for(auto i = 0; i < populationSize * selectionPercentage; i++){
             if (fitnessScoresCumSum[i] >= randomSelector){
-                nextGeneration[newMember].get_genes(currentGeneration[i], dimensions);
+                nextGeneration[newMember].get_genes(currentGeneration[i],dimensions);
                 newGenerationFitnessScores[newMember] = fitnessScores[i];
+
                 break;
             }
         }
     }
+    for(uint32_t i = populationSize * selectionPercentage; i < populationSize; i++){
+        uint32_t randomSelector = (double)std::rand()/(double)RAND_MAX * populationSize * selectionPercentage;
+        nextGeneration[i].get_genes(nextGeneration[randomSelector],dimensions);
+        nextGeneration[i].mutate(dimensions,mutationRate,lowerBound,upperBound);
+        newGenerationFitnessScores[i] = fitness(optimize(nextGeneration[i].chromosomes,dimensions),dimensions);
+    }
     // crossover
-    quickSort(newGenerationFitnessScores, nextGeneration,  1, populationSize - 1);
-    auto shouldBeCrossedOver = static_cast<uint64_t> (populationSize * crossoverPercentage);
-    if (shouldBeCrossedOver % 2 == 1 && (double)std::rand()/(double)RAND_MAX > 0.5){
-        shouldBeCrossedOver += 1;
-    }
-    else if (shouldBeCrossedOver % 2 == 1){
-        shouldBeCrossedOver -= 1;
-    }
-    for(auto i = populationSize - 1; i > 1; i -= 2){
-        nextGeneration[i].crossover(nextGeneration[i-1], dimensions, crossoverCuts, lowerBound, upperBound, crossoverRate);
+    quickSort(newGenerationFitnessScores, nextGeneration, 1, populationSize - 1);
+    uint32_t crossoverPopulation = populationSize * crossoverPercentage;
+    crossoverPopulation += (crossoverPopulation % 2) * (std::rand() > 0x3FFFFFFF ? 1 : -1);
+    for(auto i = 0; i < crossoverPopulation; i+=2){
+        nextGeneration[i].crossover(nextGeneration[i+1],dimensions,crossoverCuts, lowerBound, upperBound);
     }
     // mutation
     for(auto i = 0; i < populationSize; i++){
-        nextGeneration[i].mutate(dimensions, mutationRate, lowerBound, upperBound);
+        nextGeneration[i].mutate(dimensions,mutationRate,lowerBound, upperBound);
     }
     // hill climb
-    if (currentGenerationsBetweenHillclimbings == 0) {
+    if (generationsBetweenHillclimbings > 0 && currentGenerationsBetweenHillclimbings == 0) {
         for (auto i = 0; i < populationSize; i++) {
             nextGeneration[i].hillclimb(dimensions, optimize, fitness, strategy, lowerBound, upperBound);
         }
-        currentGenerationsBetweenHillclimbings = generationsBetweenHillclimbings;
+        currentGenerationsBetweenHillclimbings = generationsBetweenHillclimbings - 1;
     }
     else{
         currentGenerationsBetweenHillclimbings -= 1;
@@ -111,27 +117,33 @@ void engine::setup() {
     nextGeneration = new genome[populationSize];
     fitnessScores = new double_t[populationSize];
     fitnessScoresCumSum = new double_t[populationSize];
+    newGenerationFitnessScores = new double_t[populationSize];
 
     for(auto i = 0; i < populationSize; i++){
         currentGeneration[i] = genome(dimensions,lowerBound,upperBound);
         nextGeneration[i] = genome(dimensions,lowerBound,upperBound);
     }
+
+    log = {};
+    log["function"] = functionName;
+    log["dimensions"] = dimensions;
+    log["progress"] = nlohmann::json::array();
+    log["population"] = populationSize;
+    log["tolerance"] = threshold;
+    log["mutation_rate"] = mutationRate;
+    log["frequency"] = loggingFrequency;
+
+    // convert the threshold from the tolerance to the value of the fitness function required to pass
+    threshold = fitness(fixedpt(threshold),dimensions);
 }
 
 void engine::run() {
     setup();
+    startTime = std::time(nullptr);
     for(auto generation = 0; generation < generations || generations == -1; generation++){
         run_generation();
         if(generation % loggingFrequency == 0){
             std::cout << "At generation " << generation << "...\n";
-//            std::cout << "Best version:\n";
-//            std::cout << "x = [";
-//            for(int i = 0; i < dimensions - 1; i++){
-//                std::cout << tempWinner->chromosomes[i] << ", ";
-//            }
-//            std::cout << tempWinner->chromosomes[dimensions-1] <<"]\n";
-//            std::cout << "function(x) = " << optimize(tempWinner->chromosomes,dimensions) << "\n";
-
             std::cout << "Best version from this generation:\n";
             double_t delta = fitnessScores[0];
             genome* tempBest = &currentGeneration[0];
@@ -148,6 +160,7 @@ void engine::run() {
             std::cout << tempBest->chromosomes[dimensions-1] <<"]\n";
             std::cout << "function(x) = " << optimize(tempBest->chromosomes,dimensions) << "\n";
             std::cout << "fitness (x) = " << fitness(optimize(tempBest->chromosomes,dimensions),dimensions) << "\n";
+            log["progress"].push_back((float)optimize(tempBest->chromosomes,dimensions));
         }
         if (winner != nullptr){
             std::cout << "Finished after " << generation << " generations:\n";
@@ -157,6 +170,18 @@ void engine::run() {
             }
             std::cout << winner->chromosomes[dimensions-1] <<"]\n";
             std::cout << "function(x) = " << optimize(winner->chromosomes,dimensions) << "\n";
+
+            log["status"] = "success";
+            log["last_generation"] = generation;
+            log["solution"] = nlohmann::json::array();
+            for(int i = 0; i < dimensions; i++){
+                log["solution"].push_back((float)winner->chromosomes[i]);
+            }
+
+            if(generation % loggingFrequency != 0){
+                log["solution_value"] = (float)optimize(winner->chromosomes,dimensions);
+            }
+
             break;
         }
         std::swap(currentGeneration, nextGeneration);
@@ -169,7 +194,25 @@ void engine::run() {
         }
         std::cout << tempWinner->chromosomes[dimensions-1] <<"]\n";
         std::cout << "function(x) = " << optimize(tempWinner->chromosomes,dimensions) << "\n";
+
+        log["status"] = "failure";
+        log["last_generation"] = generations;
+        log["solution"] = nlohmann::json::array();
+        for(int i = 0; i < dimensions; i++){
+            log["solution"].push_back((float)tempWinner->chromosomes[i]);
+        }
+        if(generations % loggingFrequency != 0){
+            log["solution_value"] = (float)optimize(tempWinner->chromosomes,dimensions);
+        }
+
     }
+    finishTime = std::time(nullptr);
+    log["runtime"] = finishTime - startTime;
+    auto file_opened = std::ofstream(logFile);
+    if(file_opened){
+        file_opened << log.dump(2);
+    }
+
 }
 
 

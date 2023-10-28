@@ -7,7 +7,6 @@
 #include "fpm/math.hpp"
 #include <sys/types.h>
 #include "genome.h"
-#include "lut.h"
 
 fixedpt rastrigin(fixedpt* args, uint32_t n){
     auto ret = fixedpt (10l * n);
@@ -67,14 +66,14 @@ fixedpt michalewicz(fixedpt* args, uint32_t n){
 }
 
 double_t michalewicz_fitness(fixedpt f_x, uint32_t dimensions){
-    return std::abs((double_t)f_x);
+    return std::pow(std::abs((double_t)f_x),dimensions);
 }
 
 uint32_t  partition(double_t * arr, genome * additionalArray, uint32_t  low, uint32_t  high){
     double_t pivot = arr[high];
     uint32_t  i = (low - 1);
     for(uint32_t  j = low;j <= high; j++){
-        if(arr[j] < pivot){
+        if(arr[j] > pivot){
             i++;
             std::swap(arr[i],arr[j]);
             additionalArray[i].swap(additionalArray[j]);

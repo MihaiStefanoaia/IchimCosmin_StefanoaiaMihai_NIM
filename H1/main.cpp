@@ -7,13 +7,13 @@
 #include "argparse.hpp"
 
 #include "fpm/fixed.hpp"
-#include "fpm/math.hpp"
-#include <fstream>
-#include "lut.h"
 
-// map: function_name -> (domain_min, domain_max, function, fitness_function)
+// map: functionName -> (domain_min, domain_max, function, fitness_function)
 std::map<std::string, std::tuple<float,float,std::function<fixedpt(fixedpt*, uint32_t)>,std::function<double_t (fixedpt,uint32_t)>>> functions = {
         {"rastrigin",{-5.12, 5.12, rastrigin, rastrigin_fitness}},
+        {"griewangk",{-600, 600, griewangk, griewangk_fitness}},
+        {"rosenbrock",{-2.048, 2.048, rosenbrock, rosenbrock_fitness}},
+        {"michalewicz",{0, M_PI, michalewicz, michalewicz_fitness}},
 };
 
 std::map<std::string, HillclimbStrategies> hc_strats = {
@@ -22,46 +22,7 @@ std::map<std::string, HillclimbStrategies> hc_strats = {
         {"best",  HillclimbStrategies::BEST_IMPROVEMENT},
 };
 
-void createLUT() {
-    auto start  = fixedpt (0l);
-    auto end = fixedpt (8l);
-    auto step = fixedpt (8l);
-    step /= fixedpt(16384l);
-    auto cos_values = new fixedpt[16384];
-    for (int i = 0; i < 16384; i += 1) {
-        cos_values[i] = fpm::cos((start + (fixedpt(i) * step)));
-    }
-    std::ofstream header_file("lut_arr.h");
-    header_file << "#ifndef LUT_ARR_H\n";
-    header_file << "#define LUT_ARR_H\n\n";
-    header_file << "#include \"fpm/fixed.hpp\"\n";
-    header_file << "#include \"fpm/math.hpp\"\n";
-    header_file << "#include <sys/types.h>\n";
-    header_file << "using fixedpt = fpm::fixed<int64_t ,__int128_t ,40>;\n";
-    header_file << "uint64_t cos_values[] = {\n";
-    for (int i = 0; i < 16384; i += 1) {
-        char s[64];
-        snprintf(s,63,"%016lx",*(uint64_t*)(&cos_values[i]));
-        header_file << "    " << "0x" << std::hex << s << ",\n";
-    }
-    header_file << "};\n\n";
-    header_file << "#endif // LUT_ARR_H\n";
-    header_file.close();
-    std::cout << "lut.h generated successfully." << std::endl;
-    return;
-}
-
-//int main(int argc, char** argv) {
-// //    createLUT();
-//    std::cout<< sin_lut(fixedpt::pi()/fixedpt(4) - fixedpt::two_pi());
-//}
-
 int main(int argc, char** argv) {
-//    for(auto x = fixedpt(0); x < fixedpt(8); x += (fixedpt(8) / fixedpt(16384))){
-//        std::cout << fpm::cos(x) - cos_lut(x) << '\n';
-//    }
-//
-//    exit(0);
     std::srand(time(nullptr));
 
     auto parser = argparse::ArgumentParser("H1");
@@ -112,6 +73,16 @@ int main(int argc, char** argv) {
         .scan<'d',int>()
         .default_value(1);
 
+    parser.add_argument("--c_perc", "--crossover_percentage", "-cp")
+        .help("What percentage of the generation does the crossover step. Value between 0 and 100")
+        .scan<'d',int>()
+        .default_value(60);
+
+    parser.add_argument("--s_perc", "--selection_percentage", "-sp")
+            .help("What percentage of the previous generation is selected in the next generation. Value between 0 and 100")
+            .scan<'d',int>()
+            .default_value(50);
+
     std::string hcs = "{";
     for(auto& [k, _] : hc_strats){
         hcs += k + ", ";
@@ -129,6 +100,10 @@ int main(int argc, char** argv) {
             return s;
         });
 
+    parser.add_argument("--hc_freq", "--hillclimb_frequency", "-hcf")
+        .help("Set once how many generations to run the hillclimb algorithm. Set to 0 (or a negative number) in order to disable it.")
+        .scan<'d',int>()
+        .default_value(1);
 
     parser.add_argument("--log_frequency", "-fq")
         .help("The frequency at which to add to the json logs")
@@ -155,16 +130,20 @@ int main(int argc, char** argv) {
     }
     auto eng = engine();
     tie(eng.lowerBound, eng.upperBound, eng.optimize, eng.fitness) = functions[parser.get<std::string>("-f")];
+    eng.functionName = parser.get<std::string>("-f");
     eng.dimensions = parser.get<int>("-d");
     eng.populationSize = parser.get<int>("-p");
     eng.generations = parser.get<int>("-g");
-    eng.threshold = eng.fitness(fixedpt(parser.get<float>("-t")),eng.dimensions);
+    eng.threshold = parser.get<float>("-t");
     eng.mutationRate = parser.get<float>("-m");
     eng.crossoverCuts = parser.get<int>("-c");
     eng.loggingFrequency = parser.get<int>("-fq");
     eng.strategy = hc_strats[parser.get<std::string>("--hc_strat")];
     eng.logFile = parser.get<std::string>("--log_file");
     eng.disableLogging = parser.get<bool>("--disable_logs");
+    eng.crossoverPercentage = parser.get<int>("-cp") / 100.0;
+    eng.selectionPercentage = parser.get<int>("-sp") / 100.0;
+    eng.generationsBetweenHillclimbings = parser.get<int>("-hcf");
 
     eng.run();
     return 0;

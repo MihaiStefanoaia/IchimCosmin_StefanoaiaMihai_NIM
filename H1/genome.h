@@ -4,7 +4,7 @@
 #include "fpm/fixed.hpp"
 #include "fpm/math.hpp"
 
-using fixedpt = fpm::fixed<int64_t ,__int128_t ,40>;
+using fixedpt = fpm::fixed<int64_t ,__int128_t ,24>;
 
 enum HillclimbStrategies {
     NONE,
@@ -82,8 +82,8 @@ public:
         }
     }
 
-    void crossover(genome& other, uint32_t dimensions, uint32_t cuts = 1, double_t lowerBound = 0, double_t upperBound = 0, double_t crossoverRate = 1){
-        if(cuts == 0 && (double)std::rand()/(double)RAND_MAX > crossoverRate)
+    void crossover(genome& other, uint32_t dimensions, uint32_t cuts = 1, double_t lowerBound = 0, double_t upperBound = 0){
+        if(cuts == 0)
             return;
         for(int i = 0; i < dimensions; i++){
             uint64_t mask = 0;
