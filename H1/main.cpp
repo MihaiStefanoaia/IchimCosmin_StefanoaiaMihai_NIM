@@ -9,7 +9,7 @@
 #include "fpm/fixed.hpp"
 
 // map: functionName -> (domain_min, domain_max, function, fitness_function)
-std::map<std::string, std::tuple<float,float,std::function<fixedpt(fixedpt*, uint32_t)>,std::function<double_t (fixedpt,uint32_t)>>> functions = {
+std::map<std::string, std::tuple<float,float,std::function<fixedpt(fixedpt*, uint32_t)>,std::function<double_t (fixedpt, uint32_t, genome*)>>> functions = {
         {"rastrigin",{-5.12, 5.12, rastrigin, rastrigin_fitness}},
         {"griewangk",{-600, 600, griewangk, griewangk_fitness}},
         {"rosenbrock",{-2.048, 2.048, rosenbrock, rosenbrock_fitness}},

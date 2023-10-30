@@ -16,7 +16,7 @@ fixedpt rastrigin(fixedpt* args, uint32_t n){
     }
     return ret;
 }
-double_t rastrigin_fitness(fixedpt f_x,uint32_t dimensions){
+double_t rastrigin_fitness(fixedpt f_x,uint32_t dimensions, genome* g){
     if(f_x == fixedpt(0))
         return INFINITY;
     return 1.0/std::pow((double_t)f_x, dimensions);
@@ -35,7 +35,7 @@ fixedpt griewangk(fixedpt* args, uint32_t n){
     return ret - prod;
 }
 
-double_t griewangk_fitness(fixedpt f_x, uint32_t dimensions){
+double_t griewangk_fitness(fixedpt f_x, uint32_t dimensions, genome* g){
     if(f_x == fixedpt(0))
         return INFINITY;
     return 1.0/std::pow((double_t)f_x,dimensions);
@@ -49,10 +49,28 @@ fixedpt rosenbrock(fixedpt* args, uint32_t n){
     return ret;
 }
 
-double_t rosenbrock_fitness(fixedpt f_x, uint32_t dimensions){
+double_t rosenbrock_fitness(fixedpt f_x, uint32_t dimensions, genome* g){
+    if(g != nullptr){
+//        double  delta = std::abs(1 - float(g->chromosomes[dimensions - 1]));
+//        for(auto i = 0; i < dimensions - 1; i++) {
+//            delta += std::abs(float(g->chromosomes[i + 1]) - float(g->chromosomes[i]));
+//        }
+//        return delta != 0.0 ? 1/(std::pow(delta, (double_t)f_x <= 30 ? dimensions : 2) * std::pow((double_t)f_x,dimensions)) : INFINITY;
+        double mean = 0;
+        for(auto i = 0; i < dimensions; i++) {
+            mean += double(g->chromosomes[i]);
+        }
+        mean /= dimensions;
+        double variance = 0;
+        for(auto i = 0; i < dimensions; i++) {
+            variance += (double(g->chromosomes[i]) - mean) * (double(g->chromosomes[i]) - mean);
+        }
+        variance = std::pow(variance,dimensions);
+        return 1/(variance * std::pow((double_t)f_x,dimensions));
+    }
     if(f_x == fixedpt(0))
         return INFINITY;
-    return 1.0/std::pow((double_t)f_x,40);
+    return 1.0/std::pow((double_t)f_x,dimensions);
 }
 
 fixedpt michalewicz(fixedpt* args, uint32_t n){
@@ -65,7 +83,7 @@ fixedpt michalewicz(fixedpt* args, uint32_t n){
     return fixedpt(-1) * ret;
 }
 
-double_t michalewicz_fitness(fixedpt f_x, uint32_t dimensions){
+double_t michalewicz_fitness(fixedpt f_x, uint32_t dimensions, genome* g){
     return std::pow(std::abs((double_t)f_x),dimensions);
 }
 
