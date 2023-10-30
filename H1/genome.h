@@ -109,25 +109,7 @@ public:
                 std::swap(chromosomes[j], other.chromosomes[j]);
             }
         }
-//        for(int i = 0; i < dimensions; i++){
-//            uint64_t mask = 0;
-//            if(cuts == -1){
-//                mask = std::rand();
-//            } else {
-//                for(int c = 0; c < cuts; c++){
-//                    mask ^= (1 << (std::rand() % 64)) - 1;
-//                }
-//            }
-//            auto& modify = *(uint64_t *) &chromosomes[i];
-//            auto& modify_o = *(uint64_t *) &other.chromosomes[i];
-//            uint64_t buf = modify;
-//            modify   = (modify &  mask) | (modify_o & ~mask);
-//            modify_o = (buf    & ~mask) | (modify_o &  mask);
-//            chromosomes[i] = chromosomes[i] > fixedpt(lowerBound) ? chromosomes[i] : fixedpt(lowerBound);
-//            chromosomes[i] = chromosomes[i] < fixedpt(upperBound) ? chromosomes[i] : fixedpt(upperBound);
-//            other.chromosomes[i] = other.chromosomes[i] > fixedpt(lowerBound) ? other.chromosomes[i] : fixedpt(lowerBound);
-//            other.chromosomes[i] = other.chromosomes[i] < fixedpt(upperBound) ? other.chromosomes[i] : fixedpt(upperBound);
-//        }
+        delete[] cutVector;
     }
 
     void swap(genome& other) {
