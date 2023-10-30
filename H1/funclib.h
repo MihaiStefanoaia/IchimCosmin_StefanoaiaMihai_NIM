@@ -49,10 +49,10 @@ fixedpt rosenbrock(fixedpt* args, uint32_t n){
     return ret;
 }
 
-double_t rosenbrock_fitness(fixedpt f_x,uint32_t dimensions){
+double_t rosenbrock_fitness(fixedpt f_x, uint32_t dimensions){
     if(f_x == fixedpt(0))
         return INFINITY;
-    return 1.0/std::pow((double_t)f_x,dimensions);
+    return 1.0/std::pow((double_t)f_x,dimensions * 2);
 }
 
 fixedpt michalewicz(fixedpt* args, uint32_t n){

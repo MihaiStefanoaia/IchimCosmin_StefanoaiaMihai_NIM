@@ -75,7 +75,6 @@ void engine::run_generation() {
             if (fitnessScoresCumSum[i] >= randomSelector){
                 nextGeneration[newMember].get_genes(currentGeneration[i],dimensions);
                 newGenerationFitnessScores[newMember] = fitnessScores[i];
-
                 break;
             }
         }

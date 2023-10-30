@@ -88,7 +88,6 @@ public:
         auto cutVector = new uint64_t[cuts];
         for (int i = 0; i < cuts; i++){
             cutVector[i] = static_cast<uint64_t>((double_t)std::rand()/(double_t)RAND_MAX * (dimensions * 64));
-            std::cout << "taietura la pozitia: " << cutVector[i] << '\n';
         }
         for (int i = 0; i < cuts; i++){
             if (cutVector[i] % 64 != 0){
@@ -98,8 +97,8 @@ public:
                 auto& modify = *(uint64_t *) &chromosomes[index];
                 auto& modify_o = *(uint64_t *) &other.chromosomes[index];
                 uint64_t buf = modify;
-                modify   = (modify &  mask) | (modify_o & ~mask);
-                modify_o = (buf    & ~mask) | (modify_o &  mask);
+                modify   = (modify & ~mask) | (modify_o &  mask);
+                modify_o = (buf    &  mask) | (modify_o & ~mask);
                 chromosomes[index] = chromosomes[index] > fixedpt(lowerBound) ? chromosomes[index] : fixedpt(lowerBound);
                 chromosomes[index] = chromosomes[index] < fixedpt(upperBound) ? chromosomes[index] : fixedpt(upperBound);
                 other.chromosomes[index] = other.chromosomes[index] > fixedpt(lowerBound) ? other.chromosomes[index] : fixedpt(lowerBound);
