@@ -26,7 +26,7 @@ public:
     uint32_t dimensions{};                    // dimensions to optimize - also number of chromosomes
     uint32_t populationSize{};                // amount of entities
     uint32_t generations{};                   // max amount of times to run the algorithm
-    double_t threshold{};                     // the stopping point
+    fixedpt  threshold{};                     // the stopping point
     double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
     uint32_t crossoverCuts = 1;
     HillclimbStrategies strategy = NONE;
@@ -56,9 +56,10 @@ void engine::run_generation() {
     fitnessScores[0] = fitness(optimize(currentGeneration[0].chromosomes,dimensions),dimensions);
     fitnessScoresCumSum[0] = fitnessScores[0];
     for (auto i = 1; i < populationSize; i++){
-        auto fitnessScore = fitness(optimize(currentGeneration[i].chromosomes,dimensions),dimensions);
+        auto f = optimize(currentGeneration[i].chromosomes,dimensions);
+        auto fitnessScore = fitness(f,dimensions);
         fitnessScores[i] = fitnessScore;
-        if(fitnessScore >= threshold){
+        if(f <= threshold){
             winner = &currentGeneration[i];
             return;
         }
@@ -128,12 +129,13 @@ void engine::setup() {
     log["dimensions"] = dimensions;
     log["progress"] = nlohmann::json::array();
     log["population"] = populationSize;
-    log["tolerance"] = threshold;
+    log["tolerance"] = float(threshold);
     log["mutation_rate"] = mutationRate;
     log["frequency"] = loggingFrequency;
 
     // convert the threshold from the tolerance to the value of the fitness function required to pass
-    threshold = fitness(fixedpt(threshold),dimensions);
+    // threshold = fitness(fixedpt(threshold),dimensions);
+
 }
 
 void engine::run() {

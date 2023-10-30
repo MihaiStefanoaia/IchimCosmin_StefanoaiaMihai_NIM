@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
     eng.dimensions = parser.get<int>("-d");
     eng.populationSize = parser.get<int>("-p");
     eng.generations = parser.get<int>("-g");
-    eng.threshold = parser.get<float>("-t");
+    eng.threshold = fixedpt(parser.get<float>("-t"));
     eng.mutationRate = parser.get<float>("-m");
     eng.crossoverCuts = parser.get<int>("-c");
     eng.loggingFrequency = parser.get<int>("-fq");
