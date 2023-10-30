@@ -85,25 +85,49 @@ public:
     void crossover(genome& other, uint32_t dimensions, uint32_t cuts = 1, double_t lowerBound = 0, double_t upperBound = 0){
         if(cuts == 0)
             return;
-        for(int i = 0; i < dimensions; i++){
-            uint64_t mask = 0;
-            if(cuts == -1){
-                mask = std::rand();
-            } else {
-                for(int c = 0; c < cuts; c++){
-                    mask ^= (1 << (std::rand() % 64)) - 1;
-                }
-            }
-            auto& modify = *(uint64_t *) &chromosomes[i];
-            auto& modify_o = *(uint64_t *) &other.chromosomes[i];
-            uint64_t buf = modify;
-            modify   = (modify &  mask) | (modify_o & ~mask);
-            modify_o = (buf    & ~mask) | (modify_o &  mask);
-            chromosomes[i] = chromosomes[i] > fixedpt(lowerBound) ? chromosomes[i] : fixedpt(lowerBound);
-            chromosomes[i] = chromosomes[i] < fixedpt(upperBound) ? chromosomes[i] : fixedpt(upperBound);
-            other.chromosomes[i] = other.chromosomes[i] > fixedpt(lowerBound) ? other.chromosomes[i] : fixedpt(lowerBound);
-            other.chromosomes[i] = other.chromosomes[i] < fixedpt(upperBound) ? other.chromosomes[i] : fixedpt(upperBound);
+        auto cutVector = new uint64_t[cuts];
+        for (int i = 0; i < cuts; i++){
+            cutVector[i] = static_cast<uint64_t>((double_t)std::rand()/(double_t)RAND_MAX * (dimensions * 64));
+            std::cout << "taietura la pozitia: " << cutVector[i] << '\n';
         }
+        for (int i = 0; i < cuts; i++){
+            if (cutVector[i] % 64 != 0){
+                uint64_t mask = 0;
+                mask ^= (1 << (cutVector[i] % 64)) - 1;
+                int index = cutVector[i]/64u;
+                auto& modify = *(uint64_t *) &chromosomes[index];
+                auto& modify_o = *(uint64_t *) &other.chromosomes[index];
+                uint64_t buf = modify;
+                modify   = (modify &  mask) | (modify_o & ~mask);
+                modify_o = (buf    & ~mask) | (modify_o &  mask);
+                chromosomes[index] = chromosomes[index] > fixedpt(lowerBound) ? chromosomes[index] : fixedpt(lowerBound);
+                chromosomes[index] = chromosomes[index] < fixedpt(upperBound) ? chromosomes[index] : fixedpt(upperBound);
+                other.chromosomes[index] = other.chromosomes[index] > fixedpt(lowerBound) ? other.chromosomes[index] : fixedpt(lowerBound);
+                other.chromosomes[index] = other.chromosomes[index] < fixedpt(upperBound) ? other.chromosomes[index] : fixedpt(upperBound);
+            }
+            for (int j = (cutVector[i] - cutVector[i] % 64 + 64)/64u; j < dimensions; j += 1) {
+                std::swap(chromosomes[j], other.chromosomes[j]);
+            }
+        }
+//        for(int i = 0; i < dimensions; i++){
+//            uint64_t mask = 0;
+//            if(cuts == -1){
+//                mask = std::rand();
+//            } else {
+//                for(int c = 0; c < cuts; c++){
+//                    mask ^= (1 << (std::rand() % 64)) - 1;
+//                }
+//            }
+//            auto& modify = *(uint64_t *) &chromosomes[i];
+//            auto& modify_o = *(uint64_t *) &other.chromosomes[i];
+//            uint64_t buf = modify;
+//            modify   = (modify &  mask) | (modify_o & ~mask);
+//            modify_o = (buf    & ~mask) | (modify_o &  mask);
+//            chromosomes[i] = chromosomes[i] > fixedpt(lowerBound) ? chromosomes[i] : fixedpt(lowerBound);
+//            chromosomes[i] = chromosomes[i] < fixedpt(upperBound) ? chromosomes[i] : fixedpt(upperBound);
+//            other.chromosomes[i] = other.chromosomes[i] > fixedpt(lowerBound) ? other.chromosomes[i] : fixedpt(lowerBound);
+//            other.chromosomes[i] = other.chromosomes[i] < fixedpt(upperBound) ? other.chromosomes[i] : fixedpt(upperBound);
+//        }
     }
 
     void swap(genome& other) {
