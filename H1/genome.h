@@ -50,10 +50,10 @@ public:
             *(uint64_t*)(&this->chromosomes[i]) = *(uint64_t*)(&other.chromosomes[i]);
         }
     }
-    void hillclimb(uint32_t dimensions, const std::function<fixedpt(fixedpt*, uint32_t)>& optimizeFunction, const std::function<double_t (fixedpt, uint32_t)>& fitnessFunction, HillclimbStrategies strategy = BEST_IMPROVEMENT, double_t lowerBound = 0, double_t upperBound = 0){
+    void hillclimb(genome* nextGeneration, uint32_t dimensions, const std::function<fixedpt(fixedpt*, uint32_t)>& optimizeFunction, const std::function<double_t (fixedpt, uint32_t, genome*)>& fitnessFunction, HillclimbStrategies strategy = BEST_IMPROVEMENT, double_t lowerBound = 0, double_t upperBound = 0){
         if(strategy == HillclimbStrategies::NONE)
             return;
-        std::pair<int32_t ,double_t> change = {-1,fitnessFunction(optimizeFunction(this->chromosomes,dimensions),dimensions)};
+        std::pair<int32_t ,double_t> change = {-1,fitnessFunction(optimizeFunction(this->chromosomes,dimensions),dimensions,nextGeneration)};
         for(int i = 0; i < dimensions; i++) {
             for (int j = 0 ; j < 64; j++) {
                 auto& modify = *(uint64_t *) &chromosomes[i];
@@ -62,7 +62,7 @@ public:
                     modify ^= 1ul << j;
                     continue;
                 }
-                auto fitness = fitnessFunction(optimizeFunction(this->chromosomes,dimensions),dimensions);
+                auto fitness = fitnessFunction(optimizeFunction(this->chromosomes,dimensions),dimensions,nextGeneration);
                 if(fitness > change.second){
                     change = {i * 64 + j, fitness};
                     if(strategy == HillclimbStrategies::FIRST_IMPROVEMENT)

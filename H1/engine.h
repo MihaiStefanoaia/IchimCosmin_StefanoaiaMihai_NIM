@@ -22,7 +22,7 @@ public:
     double_t lowerBound{};                    // lower bound of the function domain
     double_t upperBound{};                    // upper bound of the function domain
     std::function<fixedpt(fixedpt*, uint32_t)> optimize; // function to optimize for
-    std::function<double_t (fixedpt,uint32_t)> fitness;           // fitness function
+    std::function<double_t (fixedpt,uint32_t,genome* g)> fitness;           // fitness function
     uint32_t dimensions{};                    // dimensions to optimize - also number of chromosomes
     uint32_t populationSize{};                // amount of entities
     uint32_t generations{};                   // max amount of times to run the algorithm
@@ -53,11 +53,11 @@ public:
 
 void engine::run_generation() {
     // generate fitness scores for each member of the generation
-    fitnessScores[0] = fitness(optimize(currentGeneration[0].chromosomes,dimensions),dimensions);
+    fitnessScores[0] = fitness(optimize(currentGeneration[0].chromosomes,dimensions),dimensions, currentGeneration);
     fitnessScoresCumSum[0] = fitnessScores[0];
     for (auto i = 1; i < populationSize; i++){
         auto f = optimize(currentGeneration[i].chromosomes,dimensions);
-        auto fitnessScore = fitness(f,dimensions);
+        auto fitnessScore = fitness(f,dimensions,currentGeneration);
         fitnessScores[i] = fitnessScore;
         if(f <= threshold){
             winner = &currentGeneration[i];
@@ -84,7 +84,7 @@ void engine::run_generation() {
         uint32_t randomSelector = (double)std::rand()/(double)RAND_MAX * populationSize * selectionPercentage;
         nextGeneration[i].get_genes(nextGeneration[randomSelector],dimensions);
         nextGeneration[i].mutate(dimensions,mutationRate,lowerBound,upperBound);
-        newGenerationFitnessScores[i] = fitness(optimize(nextGeneration[i].chromosomes,dimensions),dimensions);
+        newGenerationFitnessScores[i] = fitness(optimize(nextGeneration[i].chromosomes,dimensions),dimensions,nextGeneration);
     }
     // crossover
     quickSort(newGenerationFitnessScores, nextGeneration, 1, populationSize - 1);
@@ -100,7 +100,7 @@ void engine::run_generation() {
     // hill climb
     if (generationsBetweenHillclimbings > 0 && currentGenerationsBetweenHillclimbings == 0) {
         for (auto i = 0; i < populationSize; i++) {
-            nextGeneration[i].hillclimb(dimensions, optimize, fitness, strategy, lowerBound, upperBound);
+            nextGeneration[i].hillclimb(nextGeneration, dimensions, optimize, fitness, strategy, lowerBound, upperBound);
         }
         currentGenerationsBetweenHillclimbings = generationsBetweenHillclimbings - 1;
     }
@@ -160,7 +160,7 @@ void engine::run() {
             }
             std::cout << tempBest->chromosomes[dimensions-1] <<"]\n";
             std::cout << "function(x) = " << optimize(tempBest->chromosomes,dimensions) << "\n";
-            std::cout << "fitness (x) = " << fitness(optimize(tempBest->chromosomes,dimensions),dimensions) << "\n";
+            std::cout << "fitness (x) = " << fitness(optimize(tempBest->chromosomes,dimensions),dimensions,currentGeneration) << "\n";
             log["progress"].push_back((float)optimize(tempBest->chromosomes,dimensions));
         }
         if (winner != nullptr){

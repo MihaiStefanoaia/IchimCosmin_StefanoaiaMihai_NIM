@@ -51,22 +51,22 @@ fixedpt rosenbrock(fixedpt* args, uint32_t n){
 
 double_t rosenbrock_fitness(fixedpt f_x, uint32_t dimensions, genome* g){
     if(g != nullptr){
-//        double  delta = std::abs(1 - float(g->chromosomes[dimensions - 1]));
-//        for(auto i = 0; i < dimensions - 1; i++) {
-//            delta += std::abs(float(g->chromosomes[i + 1]) - float(g->chromosomes[i]));
+        double  delta = std::abs(1 - float(g->chromosomes[dimensions - 1]));
+        for(auto i = 0; i < dimensions - 1; i++) {
+            delta += std::pow(std::abs(1 - float(g->chromosomes[i])) + std::abs(float(g->chromosomes[i+1]) - float(g->chromosomes[i])), 2);
+        }
+        return delta != 0.0 ? 1/(std::pow(delta, dimensions) + std::pow((double_t)f_x,dimensions * 2)) : INFINITY;
+//        double mean = 0;
+//        for(auto i = 0; i < dimensions; i++) {
+//            mean += double(g->chromosomes[i]);
 //        }
-//        return delta != 0.0 ? 1/(std::pow(delta, (double_t)f_x <= 30 ? dimensions : 2) * std::pow((double_t)f_x,dimensions)) : INFINITY;
-        double mean = 0;
-        for(auto i = 0; i < dimensions; i++) {
-            mean += double(g->chromosomes[i]);
-        }
-        mean /= dimensions;
-        double variance = 0;
-        for(auto i = 0; i < dimensions; i++) {
-            variance += (double(g->chromosomes[i]) - mean) * (double(g->chromosomes[i]) - mean);
-        }
-        variance = std::pow(variance,dimensions);
-        return 1/(variance * std::pow((double_t)f_x,dimensions));
+//        mean /= dimensions;
+//        double variance = 0;
+//        for(auto i = 0; i < dimensions; i++) {
+//            variance += (double(g->chromosomes[i]) - mean) * (double(g->chromosomes[i]) - mean);
+//        }
+//        variance = std::pow(variance,dimensions);
+//        return 1/(variance * std::pow((double_t)f_x,dimensions));
     }
     if(f_x == fixedpt(0))
         return INFINITY;
