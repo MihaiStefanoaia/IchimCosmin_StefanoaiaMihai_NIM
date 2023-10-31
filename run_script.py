@@ -17,7 +17,7 @@ if __name__ == '__main__':
         },
         'griewangk' : {
           2: 0,
-          10: 0.0001,
+          10: 0.001,
           30: 0.1
         },
         'michalewicz' : {
@@ -31,7 +31,7 @@ if __name__ == '__main__':
         for p in [100, 500, 1000]:
             for hcs in ['none', 'first', 'best']:
                 for hcf in [0, 1, 5]:
-                    for c in [1, 2, 3]:
+                    for c in [1, 2, 3, 10]:
                         ran_any = False
                         for m in np.arange(0.00035, 0.005, 0.0005):
                             subprocesses = {}
