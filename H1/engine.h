@@ -53,11 +53,11 @@ public:
 
 void engine::run_generation() {
     // generate fitness scores for each member of the generation
-    fitnessScores[0] = fitness(optimize(currentGeneration[0].chromosomes,dimensions),dimensions, currentGeneration);
+    fitnessScores[0] = fitness(optimize(currentGeneration[0].chromosomes,dimensions),dimensions, &currentGeneration[0]);
     fitnessScoresCumSum[0] = fitnessScores[0];
     for (auto i = 1; i < populationSize; i++){
         auto f = optimize(currentGeneration[i].chromosomes,dimensions);
-        auto fitnessScore = fitness(f,dimensions,currentGeneration);
+        auto fitnessScore = fitness(f,dimensions,&currentGeneration[i]);
         fitnessScores[i] = fitnessScore;
         if(f <= threshold){
             winner = &currentGeneration[i];
