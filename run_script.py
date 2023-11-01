@@ -26,7 +26,7 @@ if __name__ == '__main__':
             30: -29
         }
     }
-    for f in ['rastrigin', 'rosenbrock', 'griewangk', 'michalewicz']:
+    for f in ['michalewicz']:
         d = 10
         for p in [100, 500, 1000]:
             for hcs in ['none', 'first', 'best']:
@@ -37,14 +37,14 @@ if __name__ == '__main__':
                             subprocesses = {}
                             for cp in range(10, 80, 10):
                                 for sp in range(10, 80, 10):
-                                    filename = f'results\\f_{f}_d_{d}_m_{m}_p_{p}_c_{c}_hcs_{hcs}_hcf_{hcf}_cp_{cp}_sp_{sp}'
+                                    filename = f'results/f_{f}_d_{d}_m_{m}_p_{p}_c_{c}_hcs_{hcs}_hcf_{hcf}_cp_{cp}_sp_{sp}'
                                     if os.path.isfile(filename + '.json'):
                                         print(f'{filename} skipped')
                                         continue
                                     outfile = open(filename + '.txt', 'w')
 
                                     subprocesses[filename] = subprocess.Popen(
-                                        ['.\\genetic-engine', '-d', str(d), '-t', str(tolerances[f][d]), '-f', f, '-p', str(p), '-m', str(m),
+                                        ['./genetic-engine', '-d', str(d), '-t', str(tolerances[f][d]), '-f', f, '-p', str(p), '-m', str(m),
                                             '-g', '400', '-c', str(c), '-fq', '10', '-cp', str(cp), '-sp', str(sp), '-hc', hcs, '-hcf', str(hcf), '--log_file',
                                             (filename + '.json')],
                                         stdout=outfile)

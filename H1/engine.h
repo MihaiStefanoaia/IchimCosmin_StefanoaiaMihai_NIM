@@ -9,27 +9,28 @@
 
 class engine {
 public:
+    using optimize_function = std::function<fixedpt(fixedpt*, uint32_t)>;
+    using fitness_function = std::function<double_t (fixedpt,uint32_t,genome* g)>;
 //    buffers
     genome* currentGeneration{};              // the main population on which the work is being done
     genome* nextGeneration{};                 // buffer for the new generations
     double_t* fitnessScores{};                // list of the fitness scores
     double_t* fitnessScoresCumSum{};          // list of the cumulative sum of the fitness scores
-    double_t* newGenerationFitnessScores;     // AAAAAAAAAaa
-    int32_t* fitnessRanking{};                // buffer for the fitness rankings
+    double_t* newGenerationFitnessScores;     // buffer for reordering the next generation before crossover
     genome* winner{};
     genome* tempWinner{};
 // parameters
     double_t lowerBound{};                    // lower bound of the function domain
     double_t upperBound{};                    // upper bound of the function domain
-    std::function<fixedpt(fixedpt*, uint32_t)> optimize; // function to optimize for
-    std::function<double_t (fixedpt,uint32_t,genome* g)> fitness;           // fitness function
+    optimize_function optimize;               // function to optimize for
+    fitness_function fitness;                 // fitness function
     uint32_t dimensions{};                    // dimensions to optimize - also number of chromosomes
     uint32_t populationSize{};                // amount of entities
     uint32_t generations{};                   // max amount of times to run the algorithm
     fixedpt  threshold{};                     // the stopping point
     double_t mutationRate{};                  // chance between 0 and 1 for a bit to mutate
-    uint32_t crossoverCuts = 1;
-    HillclimbStrategies strategy = NONE;
+    uint32_t crossoverCuts = 1;               // amount of cuts done when crossing over
+    HillclimbStrategies strategy = NONE;      // strategy used for hillclimb
     uint32_t generationsBetweenHillclimbings = 1;
     double_t crossoverPercentage = 0.65;
     uint32_t loggingFrequency = 256;
@@ -143,7 +144,7 @@ void engine::run() {
     startTime = std::time(nullptr);
     for(auto generation = 0; generation < generations || generations == -1; generation++){
         run_generation();
-        if(generation % loggingFrequency == 0){
+        if(!disableLogging && generation % loggingFrequency == 0){
             std::cout << "At generation " << generation << "...\n";
             std::cout << "Best version from this generation:\n";
             double_t delta = fitnessScores[0];
@@ -163,7 +164,7 @@ void engine::run() {
             std::cout << "fitness (x) = " << fitness(optimize(tempBest->chromosomes,dimensions),dimensions,currentGeneration) << "\n";
             log["progress"].push_back((float)optimize(tempBest->chromosomes,dimensions));
         }
-        if (winner != nullptr){
+        if (!disableLogging && winner != nullptr){
             std::cout << "Finished after " << generation << " generations:\n";
             std::cout << "x = [";
             for(int i = 0; i < dimensions - 1; i++){
@@ -187,7 +188,7 @@ void engine::run() {
         }
         std::swap(currentGeneration, nextGeneration);
     }
-    if (tempWinner != nullptr && winner == nullptr){
+    if (!disableLogging && tempWinner != nullptr && winner == nullptr){
         std::cout << "Best version:\n";
         std::cout << "x = [";
         for(int i = 0; i < dimensions - 1; i++){
@@ -207,11 +208,13 @@ void engine::run() {
         }
 
     }
-    finishTime = std::time(nullptr);
-    log["runtime"] = finishTime - startTime;
-    auto file_opened = std::ofstream(logFile);
-    if(file_opened){
-        file_opened << log.dump(2);
+    if(!disableLogging){
+        finishTime = std::time(nullptr);
+        log["runtime"] = finishTime - startTime;
+        auto file_opened = std::ofstream(logFile);
+        if(file_opened){
+            file_opened << log.dump(2);
+        }
     }
 
 }
