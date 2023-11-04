@@ -34,3 +34,10 @@
 *.idea/
 */cmake-build*/
 results
+res-old
+res-pproc
+*venv*
+genetic-engine
+*.zip
+aaaa
+*.json
