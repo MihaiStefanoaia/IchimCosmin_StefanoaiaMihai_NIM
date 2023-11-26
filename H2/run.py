@@ -20,7 +20,8 @@ def run_logfile(args):
 
 if __name__ == '__main__':
     re_spread = [-1, 0.5, 1, 3, 6]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+    re_spread = [-1, 3]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=70) as executor:
         params = []
         for function in funclib.keys():
             for inertia in np.arange(0.25, 1, 0.05):
@@ -35,8 +36,18 @@ if __name__ == '__main__':
             if not os.path.isfile(run_logfile(run)):
                 runlist.append(run)
 
-        for log, parameters in zip(executor.map(wrapper, runlist[:10]), runlist):
+        futures = {executor.submit(wrapper, run): run for run in runlist}
+        for future in concurrent.futures.as_completed(futures):
+            parameters = futures[future]
+            log = future.result()
             with open(run_logfile(parameters), 'w') as outfile:
                 json.dump(log, outfile, indent=2)
+                print(f'{run_logfile(parameters)} finished')
+
+
+        # for log, parameters in zip(executor.map(wrapper, runlist), runlist):
+        #     with open(run_logfile(parameters), 'w') as outfile:
+        #         json.dump(log, outfile, indent=2)
+        #         print(f'{run_logfile(parameters)} finished')
 
 
