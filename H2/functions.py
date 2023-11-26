@@ -14,12 +14,12 @@ def griewangk(x: Tensor) -> Tensor:
 def michalewicz(x: Tensor) -> Tensor:
     m = 2
     i_vec = (Tensor(list(range(x.shape[1]))).expand(x.shape[0],-1) + 1).to(device=x.device) / torch.pi
-    return -1 * (torch.sin(x) * torch.pow(torch.sin(x * i_vec),2*m)).sum(dim=1)
+    return -1 * (torch.sin(x) * torch.pow(torch.sin(torch.pow(x, 2) * i_vec / torch.pi), 2*m)).sum(dim=1)
 
 
 def rosenbrock(x: Tensor) -> Tensor:
-    x_i1 = x[:,1:]
-    x_i = x[:,:-1]
+    x_i1 = x[:,1:]  # x[i+1]
+    x_i = x[:,:-1]  # x[i]
     return (100 * torch.pow(x_i1 - torch.pow(x_i, 2), 2) + torch.pow(1 - x_i, 2)).sum(dim=1)
 
 
@@ -34,4 +34,4 @@ funclib = {
 if __name__ == '__main__':
     x = Tensor([[0,0,0],[0.2,0.1,0],[1,6,2],[1,1,1]]).to(torch.device('cuda'))
     print(x.shape)
-    print(griewangk(x, torch.device('cuda')).shape)
+    print(griewangk(x))
