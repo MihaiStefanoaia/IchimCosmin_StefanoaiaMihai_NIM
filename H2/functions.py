@@ -24,10 +24,17 @@ def rosenbrock(x: Tensor) -> Tensor:
 
 
 funclib = {
-    'rastrigin':   (rastrigin,-5.12, 5.12),
-    'griewangk':   (griewangk,-600, 600),
-    'michalewicz': (michalewicz,0,torch.pi),
+    'rastrigin':   (rastrigin, -5.12, 5.12),
+    'griewangk':   (griewangk, -600, 600),
+    'michalewicz': (michalewicz, 0, torch.pi),
     'rosenbrock':  (rosenbrock, -2.048, 2.048),
+}
+
+tolerances = {
+    'rastrigin': {10: 1, 30: 5},
+    'griewangk': {10: 0.001, 30: 0.01},
+    'michalewicz': {10: -9.5, 30: -29},
+    'rosenbrock': {10: 0.2, 30: 1},
 }
 
 
