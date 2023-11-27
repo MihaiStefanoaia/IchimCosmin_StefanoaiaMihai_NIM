@@ -21,13 +21,13 @@ def run_logfile(args):
 if __name__ == '__main__':
     re_spread = [-1, 0.5, 1, 3, 6]
     re_spread = [-1, 3]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=70) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
         params = []
         for function in funclib.keys():
-            for inertia in np.arange(0.25, 1, 0.05):
-                for self_bias in np.arange(0, 0.7, 0.07):
-                    for global_bias in np.arange(0, 0.5, 0.05):
-                        for exploration_factor in np.arange(0, 0.2, 0.02):
+            for inertia in np.arange(0.5, 1, 0.05):
+                for self_bias in np.arange(0.2, 0.7, 0.1):
+                    for global_bias in np.arange(0.1, 0.5, 0.1):
+                        for exploration_factor in np.arange(0, 0.2, 0.05):
                             for adjust_factor in re_spread:
                                 dimensions = 30
                                 params.append((function,adjust_factor,inertia,self_bias,global_bias,exploration_factor,100,500,10000,dimensions,tolerances[function][dimensions],torch.device('cuda'),False))
