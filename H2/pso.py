@@ -1,6 +1,6 @@
 import torch
 from tqdm import tqdm
-from functions import funclib
+from functions import funclib, tolerances
 from argparse import ArgumentParser
 import sys
 import random
@@ -82,6 +82,11 @@ def pso(func_name, adjust_factor,
                 rand_global_w = torch.rand_like(velocity).to(device)
                 rand_explore = torch.rand_like(velocity).to(device).mul_(abs(domain_hi - domain_lo)).add_(min(domain_hi, domain_lo))
 
+                # rand_personal_w = torch.zeros_like(velocity,device=device).uniform_()
+                # rand_global_w = torch.zeros_like(velocity,device=device).uniform_()
+                # rand_explore = torch.zeros_like(velocity,device=device).uniform_().mul_(abs(domain_hi - domain_lo)).add_(min(domain_hi, domain_lo))
+
+
                 # update the velocity and the particle positions; calculate the function
                 velocity = (inertia * velocity +
                             self_bias * rand_personal_w * (personal_best - x) +
@@ -91,23 +96,19 @@ def pso(func_name, adjust_factor,
                 y = function(x)
                 
                 mask = y < pb_values
-                n_mask = torch.logical_not(mask)
-                pb_values = mask * y + n_mask * pb_values
+                pb_values = mask * y + torch.logical_not(mask) * pb_values
 
                 mask = mask.view(mask.shape[0], 1)
                 mask = mask.expand(population, dimensions)
-                n_mask = torch.logical_not(mask)
-                personal_best = mask * x + n_mask * personal_best
+                personal_best = mask * x + torch.logical_not(mask) * personal_best
 
                 most_fit_i = torch.argmin(pb_values)
                 global_best_val = pb_values[most_fit_i]
                 global_best = personal_best[most_fit_i].expand(population, -1)
 
-                if use_tqdm:
-                    it.set_postfix_str(f"best value = {global_best_val.item()}")
             log['best_evolution'].append(global_best_val.item())
 
-            if global_best_val < tolerance:
+            if global_best_val.item() < tolerance:
                 log['results']['iterations_run'] = runs * batches * batch_it + (batch + 1) * batch_it
                 break
 
@@ -122,11 +123,10 @@ def pso(func_name, adjust_factor,
     
 
 if __name__ == '__main__':
-    func, lo, hi = funclib['rastrigin']
-    a = pso('rastrigin', 0,
-            0.9, 0.15, 0.15, 0.1,
-            100, 500,
-            50000, 30, 0.1,
-            torch.device('cuda'), True)
-    pprint(a)
-    pass
+    for key in funclib.keys():
+        a = pso(key, 0,
+                0.9, 0.15, 0.15, 0.1,
+                15, 500,
+                5000, 10, tolerances[key][10],
+                torch.device('cuda'), True)
+        pprint(a)

@@ -7,13 +7,13 @@ def rastrigin(x: Tensor) -> Tensor:
 
 
 def griewangk(x: Tensor) -> Tensor:
-    sqrt_i = (Tensor(list(range(x.shape[1]))).expand(x.shape[0],-1) + 1).sqrt_().to(device=x.device)
+    sqrt_i = (Tensor(list(range(x.shape[1]))).to(device=x.device).expand(x.shape[0],-1) + 1).sqrt_()
     return (torch.pow(x,2) / 4000).sum(dim=1) - (torch.cos(x / sqrt_i)).prod(dim=1) + 1
 
 
 def michalewicz(x: Tensor) -> Tensor:
     m = 2
-    i_vec = (Tensor(list(range(x.shape[1]))).expand(x.shape[0],-1) + 1).to(device=x.device) / torch.pi
+    i_vec = (Tensor(list(range(x.shape[1]))).to(device=x.device).expand(x.shape[0],-1) + 1) / torch.pi
     return -1 * (torch.sin(x) * torch.pow(torch.sin(torch.pow(x, 2) * i_vec / torch.pi), 2*m)).sum(dim=1)
 
 
