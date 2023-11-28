@@ -15,7 +15,7 @@ def wrapper(args):
 
 
 def run_logfile(args):
-    return f'results_10/function_{args[0]}_adjust_{args[1]}_inertia_{args[2]}_self_bias_{args[3]}_global_bias_{args[4]}_exploration_{args[5]}_idx{args[13]}.json'
+    return f'results_10/function_{args[0]}_adjust_{args[1]}_inertia_{args[2]}_self_bias_{args[3]}_global_bias_{args[4]}_exploration_{args[5]}_idx_{args[13]}.json'
 
 
 def run_tests():
