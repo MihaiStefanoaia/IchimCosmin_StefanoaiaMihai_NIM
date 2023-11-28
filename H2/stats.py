@@ -3,6 +3,18 @@ import matplotlib.pyplot as plt
 import random
 import json
 
+# i hate that this had to be done
+def extract_params(file_name):
+    params = file_name.split('_')
+    param_dict = {}
+    param_dict['function'] = params[1]
+    param_dict['adjust'] = float(params[3])
+    param_dict['inertia'] = float(params[5])
+    param_dict['self_bias'] = float(params[8])
+    param_dict['global_bias'] = float(params[11])
+    param_dict['exploration'] = float(os.path.splitext(params[13])[0])
+    return param_dict
+
 paths = os.listdir('results')
 
 check = [paths[int(random.uniform(0,1)*len(paths))] for _ in range(100)]

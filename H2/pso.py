@@ -31,7 +31,9 @@ def pso(func_name, adjust_factor,
         'total_iterations': batches * batch_it if batch_it > 0 else -1,
         'tolerance': tolerance,
         'dimensions': dimensions,
-        'logging_frequency': batch_it
+        'logging_frequency': batch_it,
+        'inertia': inertia,
+        'adjust_factor': adjust_factor
     }
     log['results'] = {
         'status': None,  # pass or fail

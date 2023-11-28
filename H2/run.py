@@ -15,7 +15,7 @@ def wrapper(args):
 
 
 def run_logfile(args):
-    return f'results/function_{args[0]}_adjust_{args[1]}_inertia_{args[2]}_self_bias_{args[3]}_global_bias_{args[4]}_exploration_{args[5]}.json'
+    return f'results_10/function_{args[0]}_adjust_{args[1]}_inertia_{args[2]}_self_bias_{args[3]}_global_bias_{args[4]}_exploration_{args[5]}.json'
 
 
 def run_tests():
@@ -23,13 +23,13 @@ def run_tests():
     with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
         params = []
         for function in funclib.keys():
-            for inertia in np.arange(0.5, 1, 0.05):
-                for self_bias in np.arange(0.1, 0.7, 0.1):
-                    for global_bias in np.arange(0.1, 0.5, 0.1):
+            for inertia in np.arange(0.7, 1, 0.05):
+                for self_bias in np.arange(0.1, 0.5, 0.1):
+                    for global_bias in np.arange(0.05, 0.3, 0.05):
                         for exploration_factor in np.arange(0, 0.05, 0.01):
                             for adjust_factor in re_spread:
                                 dimensions = 10
-                                params.append((function,adjust_factor,inertia,self_bias,global_bias,exploration_factor,15,500,5000,dimensions,tolerances[function][dimensions],torch.device('cuda'),False))
+                                params.append((function,adjust_factor,inertia,self_bias,global_bias,exploration_factor,30,250,5000,dimensions,tolerances[function][dimensions],torch.device('cuda'),False))
         runlist = []
         for run in params:
             if not os.path.isfile(run_logfile(run)):
