@@ -1,38 +1,46 @@
 import os
 import pygad
 
-adjacency_matrix = [[]]
+adjacency_list = []
+full_adjacency_list = {}
 number_of_edges = 0
 number_of_nodes = 0
 
 
 def process_graph_file(file_path):
-    global adjacency_matrix
+    global adjacency_list
     global number_of_nodes
     global number_of_edges
     file_handler = open(file_path, 'r')
     lines = file_handler.readlines()
     for line in lines:
         if line[0] == 'p':
-            adjacency_matrix = [[0 for col in range(int(line.split(" ")[2]))] for row in range(int(line.split(" ")[2]))]
             number_of_edges = int(line.split(" ")[3])
             number_of_nodes = int(line.split(" ")[2])
-        if line[0] == 'e' and adjacency_matrix is not None:
-            adjacency_matrix[int(line.split(" ")[1]) - 1][int(line.split(" ")[2]) - 1] = 1
-    if number_of_edges != 0 and number_of_nodes != 0 and adjacency_matrix is not None:
-        return number_of_nodes, number_of_edges, adjacency_matrix
+        if line[0] == 'e' and adjacency_list is not None:
+            adjacency_list.append((int(line.split(" ")[1]) - 1, int(line.split(" ")[2]) - 1))
+            if int(line.split(" ")[1]) - 1 not in full_adjacency_list.keys():
+                full_adjacency_list[int(line.split(" ")[1]) - 1] = []
+            full_adjacency_list[int(line.split(" ")[1]) - 1].append(int(line.split(" ")[2]) - 1)
+
+            if int(line.split(" ")[2]) - 1 not in full_adjacency_list.keys():
+                full_adjacency_list[int(line.split(" ")[2]) - 1] = []
+            full_adjacency_list[int(line.split(" ")[2]) - 1].append(int(line.split(" ")[1]) - 1)
+    if number_of_edges != 0 and number_of_nodes != 0:
+        return number_of_nodes, number_of_edges, adjacency_list
+
+
+def coloring_mistakes(solution):
+    global adjacency_list
+    mistakes = 0
+    for node_a, node_b in adjacency_list:
+        mistakes += 1 if solution[node_a] == solution[node_b] else 0
+    return mistakes
 
 
 def fitness_func(ga_instance, solution, solution_index):
-    coloring_mistakes = 0
-    colors = []
-    for current_index, current_color in enumerate(solution):
-        if not colors.__contains__(int(current_color)):
-            colors.append(int(current_color))
-        for i in range(number_of_nodes):
-            if int(solution[i]) == int(current_color) and adjacency_matrix[current_index][i] == 1:
-                coloring_mistakes += 1
-    return 1 / (coloring_mistakes * number_of_nodes + len(colors))
+    colors = list(set(solution))
+    return 1 / ((coloring_mistakes(solution) * (number_of_nodes ** 2)) + len(colors) * number_of_nodes)
 
 
 def process_color_list(color_list):
@@ -44,6 +52,16 @@ def process_color_list(color_list):
     return color_list
 
 
+def minimizer(ga_instance, offspring_mutation):
+    for node in offspring_mutation:
+        for i in range(number_of_nodes):
+            colors = {node[j] for j in full_adjacency_list[i]}  # set of colors of the neighbours
+            for c in range(number_of_nodes):
+                if c not in colors:
+                    node[i] = c
+                    break
+
+
 if __name__ == '__main__':
     for file in os.listdir('graphFiles'):
         if os.path.isfile(os.path.join('graphFiles', file)):
@@ -51,7 +69,7 @@ if __name__ == '__main__':
             ga_instance = pygad.GA(num_generations=1000,
                                    num_parents_mating=4,
                                    fitness_func=fitness_func,
-                                   sol_per_pop=100,
+                                   sol_per_pop=500,
                                    gene_type=int,
                                    num_genes=number_of_nodes,
                                    init_range_low=0,
@@ -60,7 +78,10 @@ if __name__ == '__main__':
                                    keep_parents=1,
                                    crossover_type="single_point",
                                    mutation_type="random",
-                                   mutation_percent_genes=10)
+                                   mutation_percent_genes=10,
+                                   on_mutation=minimizer,
+                                   # parallel_processing=['', 6],
+                                   )
             ga_instance.run()
             ga_instance.plot_fitness()
             solution, solution_fitness, solution_idx = ga_instance.best_solution()
@@ -69,9 +90,4 @@ if __name__ == '__main__':
             print(f"Parameters of the best solution : {process_color_list(solution)}")
             print(f"Fitness value of the best solution = {solution_fitness}")
             print(f"Index of the best solution : {solution_idx}")
-            coloring_mistakes = 0
-            for current_index, current_color in enumerate(solution):
-                for i in range(number_of_nodes):
-                    if int(solution[i]) == int(current_color) and adjacency_matrix[current_index][i] == 1:
-                        coloring_mistakes += 1
-            print(f"And the solution has {len(set(solution))} unique colors and {coloring_mistakes} coloring mistakes")
+            print(f"And the solution has {len(set(solution))} unique colors and {coloring_mistakes(solution)} coloring mistakes")
