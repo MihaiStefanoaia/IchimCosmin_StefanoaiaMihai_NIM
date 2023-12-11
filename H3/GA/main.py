@@ -32,9 +32,7 @@ def process_graph_file(file_path):
 
 def coloring_mistakes(solution):
     global adjacency_list
-    mistakes = 0
-    for node_a, node_b in adjacency_list:
-        mistakes += 1 if solution[node_a] == solution[node_b] else 0
+    mistakes = sum([1 if solution[node_a] == solution[node_b] else 0 for node_a, node_b in adjacency_list])
     return mistakes
 
 
@@ -63,13 +61,13 @@ def minimizer(ga_instance, offspring_mutation):
 
 
 if __name__ == '__main__':
-    for file in os.listdir('graphFiles'):
-        if os.path.isfile(os.path.join('graphFiles', file)):
-            process_graph_file(os.path.join('graphFiles', file))
+    for file in os.listdir('../graphFiles'):
+        if os.path.isfile(os.path.join('../graphFiles', file)):
+            process_graph_file(os.path.join('../graphFiles', file))
             ga_instance = pygad.GA(num_generations=1000,
                                    num_parents_mating=4,
                                    fitness_func=fitness_func,
-                                   sol_per_pop=500,
+                                   sol_per_pop=100,
                                    gene_type=int,
                                    num_genes=number_of_nodes,
                                    init_range_low=0,

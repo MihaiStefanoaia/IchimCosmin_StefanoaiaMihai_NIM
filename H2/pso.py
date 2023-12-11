@@ -6,13 +6,12 @@ import sys
 import random
 import time
 from pprint import pprint
-
+from line_profiler_pycharm import profile
 
 def spread_adjust(z: torch.Tensor, factor: int = 3):
     z = z.mul_(2 * factor).sub_(factor)  # get the numbers from [0,1) -> [-factor,factor)
     return z.sigmoid_()  # apply sigmoid to the new numbers - this changes the distribution of the numbers
-
-
+@profile
 def pso(func_name, adjust_factor,
         inertia, self_bias, global_bias, exploration_factor,
         batches, batch_it, 
@@ -105,8 +104,15 @@ def pso(func_name, adjust_factor,
                 personal_best = mask * x + torch.logical_not(mask) * personal_best
 
                 most_fit_i = torch.argmin(pb_values)
-                global_best_val = pb_values[most_fit_i]
-                global_best = personal_best[most_fit_i].expand(population, -1)
+                # global_best_val = pb_values[most_fit_i]
+                # global_best = personal_best[most_fit_i].expand(population, -1)
+
+                onehot_mask = torch.nn.functional.one_hot(most_fit_i,num_classes=population).float()
+                global_best_val = pb_values.dot(onehot_mask)
+                onehot_mask = onehot_mask.view(onehot_mask.shape[0], 1)
+                onehot_mask = onehot_mask.expand(population,dimensions)
+                global_best = (personal_best * onehot_mask).sum(dim=0).expand(population, -1)
+
 
             log['best_evolution'].append(global_best_val.item())
 
@@ -127,8 +133,9 @@ def pso(func_name, adjust_factor,
 if __name__ == '__main__':
     for key in funclib.keys():
         a = pso(key, 0,
-                0.9, 0.15, 0.15, 0.1,
+                0.9, 0.15, 0.15, 0,
                 15, 500,
-                5000, 10, tolerances[key][10],
+                100000, 30, tolerances[key][30],
                 torch.device('cuda'), True)
         pprint(a)
+        break
