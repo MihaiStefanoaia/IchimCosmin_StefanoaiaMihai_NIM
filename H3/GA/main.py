@@ -60,32 +60,30 @@ def minimizer(ga_instance, offspring_mutation):
                     break
 
 
-if __name__ == '__main__':
-    for file in os.listdir('../graphFiles'):
-        if os.path.isfile(os.path.join('../graphFiles', file)):
-            process_graph_file(os.path.join('../graphFiles', file))
-            ga_instance = pygad.GA(num_generations=1000,
-                                   num_parents_mating=4,
-                                   fitness_func=fitness_func,
-                                   sol_per_pop=100,
-                                   gene_type=int,
-                                   num_genes=number_of_nodes,
-                                   init_range_low=0,
-                                   init_range_high=number_of_nodes - 1,
-                                   parent_selection_type="sss",
-                                   keep_parents=1,
-                                   crossover_type="single_point",
-                                   mutation_type="random",
-                                   mutation_percent_genes=10,
-                                   on_mutation=minimizer,
-                                   # parallel_processing=['', 6],
-                                   )
-            ga_instance.run()
-            ga_instance.plot_fitness()
-            solution, solution_fitness, solution_idx = ga_instance.best_solution()
-            if ga_instance.best_solution_generation != -1:
-                print(f"Best fitness value reached after {ga_instance.best_solution_generation} generations.")
-            print(f"Parameters of the best solution : {process_color_list(solution)}")
-            print(f"Fitness value of the best solution = {solution_fitness}")
-            print(f"Index of the best solution : {solution_idx}")
-            print(f"And the solution has {len(set(solution))} unique colors and {coloring_mistakes(solution)} coloring mistakes")
+def main(file_path):
+    process_graph_file(file_path)
+    ga_instance = pygad.GA(num_generations=1000,
+                            num_parents_mating=4,
+                            fitness_func=fitness_func,
+                            sol_per_pop=100,
+                            gene_type=int,
+                            num_genes=number_of_nodes,
+                            init_range_low=0,
+                            init_range_high=number_of_nodes - 1,
+                            parent_selection_type="sss",
+                            keep_parents=1,
+                            crossover_type="single_point",
+                            mutation_type="random",
+                            mutation_percent_genes=10,
+                            on_mutation=minimizer,
+                            # parallel_processing=['', 6],
+                            )
+    ga_instance.run()
+    ga_instance.plot_fitness()
+    solution, solution_fitness, solution_idx = ga_instance.best_solution()
+    if ga_instance.best_solution_generation != -1:
+        print(f"Best fitness value reached after {ga_instance.best_solution_generation} generations.")
+    print(f"Parameters of the best solution : {process_color_list(solution)}")
+    print(f"Fitness value of the best solution = {solution_fitness}")
+    print(f"Index of the best solution : {solution_idx}")
+    print(f"And the solution has {len(set(solution))} unique colors and {coloring_mistakes(solution)} coloring mistakes")

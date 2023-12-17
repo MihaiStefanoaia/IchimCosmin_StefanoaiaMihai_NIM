@@ -91,8 +91,8 @@ def graph_color_nca(iterations: int, mutation_rate: float):
 
 
 if __name__ == '__main__':
-    for file in os.listdir('../graphFiles'):
-        process_graph_file(os.path.join('../graphFiles', file))
+    for file in os.listdir('graphFiles'):
+        process_graph_file(os.path.join('graphFiles', file))
         solution = graph_color_nca(500, 15 / number_of_nodes)
         print(f"The solution has {len(set(solution))} unique colors and {coloring_mistakes(solution)} coloring mistakes")
 

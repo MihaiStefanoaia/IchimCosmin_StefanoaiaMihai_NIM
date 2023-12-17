@@ -1,5 +1,6 @@
 import pyswarms as ps
 import numpy as np
+from pyswarms.utils.functions import single_obj as fx
 
 adjacency_list = []
 full_adjacency_list = {}
@@ -50,8 +51,7 @@ def process_color_list(color_list):
     return color_list
 
 
-if __name__ == '__main__':
-    graph_file_path = 'graphFiles\\myciel3.col'
+def main(graph_file_path):
     process_graph_file(graph_file_path)
     lower_bound = np.zeros(number_of_nodes)
     upper_bound = np.full(number_of_nodes, number_of_nodes - 1)
@@ -75,3 +75,6 @@ if __name__ == '__main__':
     print(outcome[1])
     print(process_color_list(outcome[1]))
     print(len(set(process_color_list(outcome[1]))))
+
+if __name__ == '__main__':
+    main('H3/graphFiles/myciel3.col')
