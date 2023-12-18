@@ -1,6 +1,7 @@
 import pyswarms as ps
 import numpy as np
 from pyswarms.utils.functions import single_obj as fx
+import json
 
 adjacency_list = []
 full_adjacency_list = {}
@@ -68,13 +69,19 @@ def main(graph_file_path):
                     temp_color_set.add(round(j))
             color_count += len(temp_color_set)
         return 1 / (mistakes ** 3 + color_count ** 2)
-
     optimizer = ps.single.GlobalBestPSO(n_particles=10000, dimensions=number_of_nodes, bounds=bounds, options=options)
     outcome = optimizer.optimize(graph_coloring_objective_function, iters=100)
-    print(outcome[0])
-    print(outcome[1])
-    print(process_color_list(outcome[1]))
-    print(len(set(process_color_list(outcome[1]))))
+    # print(outcome[0])
+    # print(outcome[1])
+    # print(process_color_list(outcome[1]))
+    # print(len(set(process_color_list(outcome[1]))))
+    data = {
+        'file_name': graph_file_path,
+        'number_of_colors': len(set(process_color_list(outcome[1]))),
+        'colors': list(process_color_list(outcome[1]))
+    }
+    return data
+
 
 if __name__ == '__main__':
-    main('H3/graphFiles/myciel3.col')
+    main('..\\graphFiles\\myciel3.col')

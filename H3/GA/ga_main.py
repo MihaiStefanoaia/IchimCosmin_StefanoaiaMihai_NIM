@@ -1,3 +1,4 @@
+import json
 import os
 import pygad
 
@@ -79,11 +80,17 @@ def main(file_path):
                             # parallel_processing=['', 6],
                             )
     ga_instance.run()
-    ga_instance.plot_fitness()
+    # ga_instance.plot_fitness()
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
-    if ga_instance.best_solution_generation != -1:
-        print(f"Best fitness value reached after {ga_instance.best_solution_generation} generations.")
-    print(f"Parameters of the best solution : {process_color_list(solution)}")
-    print(f"Fitness value of the best solution = {solution_fitness}")
-    print(f"Index of the best solution : {solution_idx}")
-    print(f"And the solution has {len(set(solution))} unique colors and {coloring_mistakes(solution)} coloring mistakes")
+    # if ga_instance.best_solution_generation != -1:
+    #     print(f"Best fitness value reached after {ga_instance.best_solution_generation} generations.")
+    # print(f"Parameters of the best solution : {process_color_list(solution)}")
+    # print(f"Fitness value of the best solution = {solution_fitness}")
+    # print(f"Index of the best solution : {solution_idx}")
+    # print(f"And the solution has {len(set(solution))} unique colors and {coloring_mistakes(solution)} coloring mistakes")
+    data = {
+        'file_name': str(file_path),
+        'number_of_colors': len(set(solution)),
+        'colors': [float(a) for a in process_color_list(solution)]
+    }
+    return data
