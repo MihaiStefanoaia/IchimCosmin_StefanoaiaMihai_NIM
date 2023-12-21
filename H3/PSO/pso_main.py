@@ -84,4 +84,4 @@ def main(graph_file_path):
 
 
 if __name__ == '__main__':
-    main('..\\graphFiles\\myciel3.col')
+    main('..\\graphFiles\\mulsol.i.1.col')

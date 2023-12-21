@@ -6,18 +6,22 @@ adjacency_list = []
 full_adjacency_list = {}
 number_of_edges = 0
 number_of_nodes = 0
+from pprint import pprint
 
 
 def process_graph_file(file_path):
     global adjacency_list
     global number_of_nodes
     global number_of_edges
+    global full_adjacency_list
     file_handler = open(file_path, 'r')
     lines = file_handler.readlines()
+
     for line in lines:
         if line[0] == 'p':
             number_of_edges = int(line.split(" ")[3])
             number_of_nodes = int(line.split(" ")[2])
+            full_adjacency_list = {a : [] for a in range(number_of_nodes)}
         if line[0] == 'e' and adjacency_list is not None:
             adjacency_list.append((int(line.split(" ")[1]) - 1, int(line.split(" ")[2]) - 1))
             if int(line.split(" ")[1]) - 1 not in full_adjacency_list.keys():
@@ -33,9 +37,10 @@ def process_graph_file(file_path):
 
 def coloring_mistakes(solution):
     global adjacency_list
-    mistakes = sum([1 if solution[node_a] == solution[node_b] else 0 for node_a, node_b in adjacency_list])
+    mistakes = 0
+    for node_a, node_b in adjacency_list:
+        mistakes += 100 if node_a not in range(number_of_nodes) or node_b not in range(number_of_nodes) else 1 if solution[node_a] == solution[node_b] else 0
     return mistakes
-
 
 def fitness_func(ga_instance, solution, solution_index):
     colors = list(set(solution))
@@ -50,18 +55,28 @@ def process_color_list(color_list):
                     color_list[idx] -= 1
     return color_list
 
-
+iteration = 0
 def minimizer(ga_instance, offspring_mutation):
+    global iteration
+    if iteration % 20 == 0:
+        print(f'Iteration: {iteration}')
+    iteration += 1
     for node in offspring_mutation:
-        for i in range(number_of_nodes):
-            colors = {node[j] for j in full_adjacency_list[i]}  # set of colors of the neighbours
-            for c in range(number_of_nodes):
-                if c not in colors:
-                    node[i] = c
-                    break
-
+        try:
+            for i in range(number_of_nodes):
+                colors = {node[j] for j in full_adjacency_list[i]}  # set of colors of the neighbours
+                for c in range(number_of_nodes):
+                    if c not in colors:
+                        node[i] = c
+                        break
+        except:
+            pprint(full_adjacency_list)
+            print(node)
+            exit(0)
 
 def main(file_path):
+    global iteration
+    iteration = 0
     process_graph_file(file_path)
     ga_instance = pygad.GA(num_generations=1000,
                             num_parents_mating=4,
